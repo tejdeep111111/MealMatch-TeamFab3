@@ -37,13 +37,6 @@ data class Meal(
         get() = if (name.isBlank()) "Untitled meal" else name
 }
 
-/* ── Review ───────────────────────────────────────── */
-
-data class ReviewRequest(
-    val providerId: String,
-    val rating: Int,
-    val comment: String? = null
-)
 
 /* ── Subscription ─────────────────────────────────── */
 
@@ -75,6 +68,12 @@ data class SubscriptionResponse(
 
 /* ── Review ───────────────────────────────────────── */
 
+data class ReviewRequest(
+    val providerId: String,
+    val rating: Int,
+    val comment: String? = null
+)
+
 data class ReviewResponse(
     val id: String,
     val userId: String? = null,
@@ -97,3 +96,24 @@ data class ProviderResponse(
     val rating: Double? = null,
     val isActive: Boolean? = null
 )
+
+/* ── Upcoming Delivery (computed client-side) ─────── */
+
+/**
+ * Represents a single upcoming delivery slot computed from an active subscription.
+ * The user can skip a specific date without affecting the overall subscription schedule.
+ */
+data class UpcomingDelivery(
+    val subscriptionId: String,
+    val mealName: String,
+    val providerName: String?,
+    val dateStr: String,          // "yyyy-MM-dd" — used for keying
+    val displayDate: String,      // e.g. "Mon, Apr 28"
+    val daysUntil: Int,           // 0 = today, 1 = tomorrow, …
+    val deliveryTime: String?,
+    val deliveryAddress: String?,
+    val isSkipped: Boolean = false
+) {
+    /** Unique key used in SkipStore: "subscriptionId::yyyy-MM-dd" */
+    val skipKey: String get() = "$subscriptionId::$dateStr"
+}

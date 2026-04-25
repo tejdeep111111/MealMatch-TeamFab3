@@ -1,5 +1,6 @@
 package com.teamfab.meallmatch.person.data
 
+import com.teamfab.meallmatch.person.data.local.SkipStore
 import com.teamfab.meallmatch.person.data.local.TokenStore
 import com.teamfab.meallmatch.person.data.model.*
 import com.teamfab.meallmatch.person.data.remote.MealMatchApi
@@ -9,7 +10,8 @@ import javax.inject.Singleton
 @Singleton
 class MealRepository @Inject constructor(
     private val api: MealMatchApi,
-    private val tokenStore: TokenStore
+    private val tokenStore: TokenStore,
+    private val skipStore: SkipStore
 ) {
     /* ── Auth ──────────────────────────────────────── */
 
@@ -88,4 +90,15 @@ class MealRepository @Inject constructor(
 
     suspend fun providerReviews(token: String, providerId: String): List<ReviewResponse> =
         api.providerReviews("Bearer $token", providerId)
+
+    /* ── One-Time Delivery Skips ───────────────────── */
+
+    /** A live stream of all currently skipped "subscriptionId::date" keys. */
+    val skippedDeliveriesFlow = skipStore.skippedFlow
+
+    /** Mark a single delivery date as skipped (does NOT cancel the subscription). */
+    suspend fun skipDelivery(skipKey: String) = skipStore.skip(skipKey)
+
+    /** Restore a previously skipped delivery date. */
+    suspend fun unskipDelivery(skipKey: String) = skipStore.unskip(skipKey)
 }

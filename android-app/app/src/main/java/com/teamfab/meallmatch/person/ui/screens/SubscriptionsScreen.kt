@@ -30,7 +30,7 @@ import com.teamfab.meallmatch.person.ui.vm.SubscriptionsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubscriptionsScreen(
-    onBack: () -> Unit,
+    onBack: () -> Unit = {},
     vm: SubscriptionsViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -42,9 +42,6 @@ fun SubscriptionsScreen(
                 modifier = Modifier.border(width = 1.dp, color = NourishColors.CardBorder, shape = RoundedCornerShape(0.dp))) {
                 Row(modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = NourishColors.OnSurfaceVariant)
-                    }
                     Text("My Subscriptions", style = MaterialTheme.typography.headlineMedium, color = NourishColors.Primary)
                     IconButton(onClick = {}) {
                         Icon(Icons.Outlined.Notifications, "Notifications", tint = NourishColors.Primary)

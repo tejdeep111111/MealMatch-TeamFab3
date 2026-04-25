@@ -28,7 +28,7 @@ import com.teamfab.meallmatch.person.ui.vm.ProvidersViewModel
 @Composable
 fun ProvidersScreen(
     onProvider: (String) -> Unit,
-    onBack: () -> Unit,
+    onBack: () -> Unit = {},
     vm: ProvidersViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
@@ -39,11 +39,6 @@ fun ProvidersScreen(
             Surface(color = NourishColors.Surface.copy(alpha = 0.9f), tonalElevation = 0.dp,
                 modifier = Modifier.border(1.dp, NourishColors.CardBorder, RoundedCornerShape(0.dp))) {
                 Row(modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onBack, modifier = Modifier.size(40.dp).background(NourishColors.SurfaceContainer, CircleShape)
-                        .border(1.dp, NourishColors.OutlineVariant.copy(alpha = 0.3f), CircleShape)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = NourishColors.OnSurfaceVariant)
-                    }
-                    Spacer(Modifier.width(16.dp))
                     Text("Meal Providers", style = MaterialTheme.typography.headlineMedium, color = NourishColors.Primary)
                 }
             }

@@ -1,10 +1,12 @@
 package com.teamfab.mealmatch.controller;
 
+import com.teamfab.mealmatch.dto.MealSkipResponse;
 import com.teamfab.mealmatch.dto.MenuItemRequest;
 import com.teamfab.mealmatch.dto.MenuItemResponse;
 import com.teamfab.mealmatch.dto.ProviderResponse;
 import com.teamfab.mealmatch.dto.ReviewResponse;
 import com.teamfab.mealmatch.dto.SubscriptionResponse;
+import com.teamfab.mealmatch.service.MealSkipService;
 import com.teamfab.mealmatch.service.MenuItemService;
 import com.teamfab.mealmatch.service.ProviderService;
 import com.teamfab.mealmatch.service.ReviewService;
@@ -27,6 +29,7 @@ public class ProviderController {
     private final ProviderService providerService;
     private final SubscriptionService subscriptionService;
     private final ReviewService reviewService;
+    private final MealSkipService mealSkipService;
 
     @GetMapping("/me")
     public ResponseEntity<ProviderResponse> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
@@ -73,5 +76,11 @@ public class ProviderController {
     @GetMapping("/subscriptions")
     public ResponseEntity<List<SubscriptionResponse>> getMySubscriptions(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(subscriptionService.getProviderSubscriptions(userDetails.getUsername()));
+    }
+
+    /** Provider dashboard: all meal skips across all subscriptions for this provider */
+    @GetMapping("/meal-skips")
+    public ResponseEntity<List<MealSkipResponse>> getMealSkips(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(mealSkipService.getSkipsForProvider(userDetails.getUsername()));
     }
 }
