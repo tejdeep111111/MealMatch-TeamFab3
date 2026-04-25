@@ -13,5 +13,6 @@ object Routes {
     const val ProviderDetails = "provider/{providerId}"
     fun providerDetails(providerId: String) = "provider/$providerId"
     const val DietaryPreferences = "dietary-preferences"
+    const val WeeklySummary = "weekly-summary"
     const val Profile = "profile"
 }

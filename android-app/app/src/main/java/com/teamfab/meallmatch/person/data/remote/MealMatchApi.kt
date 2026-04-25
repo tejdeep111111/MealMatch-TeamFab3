@@ -51,6 +51,30 @@ interface MealMatchApi {
         @Path("id") id: String
     ): SubscriptionResponse
 
+    /* ── Meal Skips (one-time delivery cancellation) ─── */
+
+    /** Skip one delivery date for a subscription without cancelling the whole plan. */
+    @POST("/api/subscriptions/{id}/skip")
+    suspend fun skipMeal(
+        @Header("Authorization") bearer: String,
+        @Path("id") subscriptionId: String,
+        @Body body: MealSkipRequest
+    ): MealSkipResponse
+
+    /** Remove a previously registered skip (un-skip). Returns 204 No Content. */
+    @DELETE("/api/subscriptions/skips/{skipId}")
+    suspend fun cancelSkip(
+        @Header("Authorization") bearer: String,
+        @Path("skipId") skipId: String
+    )
+
+    /** List all skips for one of the user's subscriptions. */
+    @GET("/api/subscriptions/{id}/skips")
+    suspend fun getSkipsForSubscription(
+        @Header("Authorization") bearer: String,
+        @Path("id") subscriptionId: String
+    ): List<MealSkipResponse>
+
     /* ── Reviews ───────────────────────────────────── */
 
     @POST("/api/reviews")

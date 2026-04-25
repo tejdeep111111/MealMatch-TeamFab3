@@ -97,23 +97,43 @@ data class ProviderResponse(
     val isActive: Boolean? = null
 )
 
+/* ── Meal Skip (server-side one-time delivery skip) ── */
+
+/** Sent to POST /api/subscriptions/{id}/skip */
+data class MealSkipRequest(
+    val skipDate: String,         // "yyyy-MM-dd"
+    val reason: String? = null
+)
+
+/** Returned by the backend for every skip record */
+data class MealSkipResponse(
+    val id: String,               // UUID — needed to DELETE (un-skip)
+    val subscriptionId: String,
+    val userEmail: String? = null,
+    val menuItemName: String? = null,
+    val deliveryTime: String? = null,
+    val daysOfWeek: String? = null,
+    val skipDate: String,         // "yyyy-MM-dd"
+    val reason: String? = null,
+    val createdAt: String? = null
+)
+
 /* ── Upcoming Delivery (computed client-side) ─────── */
 
 /**
  * Represents a single upcoming delivery slot computed from an active subscription.
  * The user can skip a specific date without affecting the overall subscription schedule.
+ * When [isSkipped] is true, [skipId] holds the server-side MealSkip.id needed to un-skip.
  */
 data class UpcomingDelivery(
     val subscriptionId: String,
     val mealName: String,
     val providerName: String?,
-    val dateStr: String,          // "yyyy-MM-dd" — used for keying
+    val dateStr: String,          // "yyyy-MM-dd"
     val displayDate: String,      // e.g. "Mon, Apr 28"
     val daysUntil: Int,           // 0 = today, 1 = tomorrow, …
     val deliveryTime: String?,
     val deliveryAddress: String?,
-    val isSkipped: Boolean = false
-) {
-    /** Unique key used in SkipStore: "subscriptionId::yyyy-MM-dd" */
-    val skipKey: String get() = "$subscriptionId::$dateStr"
-}
+    val isSkipped: Boolean = false,
+    val skipId: String? = null    // non-null when isSkipped — the MealSkip UUID from the server
+)

@@ -100,10 +100,14 @@ fun MealMatchNavGraph(navController: NavHostController) {
             composable(Routes.DietaryPreferences) {
                 DietaryPreferencesScreen(onBack = { navController.popBackStack() })
             }
+            composable(Routes.WeeklySummary) {
+                WeeklySummaryScreen(onBack = { navController.popBackStack() })
+            }
             composable(Routes.Profile) {
                 ProfileScreen(
                     onBack = { navController.popBackStack() },
                     onDietaryPreferences = { navController.navigate(Routes.DietaryPreferences) },
+                    onWeeklySummary = { navController.navigate(Routes.WeeklySummary) },
                     onLogout = {
                         authVm.logout()
                         navController.navigate(Routes.Login) {

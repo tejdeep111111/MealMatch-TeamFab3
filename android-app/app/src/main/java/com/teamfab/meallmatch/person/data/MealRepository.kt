@@ -1,6 +1,5 @@
 package com.teamfab.meallmatch.person.data
 
-import com.teamfab.meallmatch.person.data.local.SkipStore
 import com.teamfab.meallmatch.person.data.local.TokenStore
 import com.teamfab.meallmatch.person.data.model.*
 import com.teamfab.meallmatch.person.data.remote.MealMatchApi
@@ -10,8 +9,7 @@ import javax.inject.Singleton
 @Singleton
 class MealRepository @Inject constructor(
     private val api: MealMatchApi,
-    private val tokenStore: TokenStore,
-    private val skipStore: SkipStore
+    private val tokenStore: TokenStore
 ) {
     /* ── Auth ──────────────────────────────────────── */
 
@@ -91,14 +89,28 @@ class MealRepository @Inject constructor(
     suspend fun providerReviews(token: String, providerId: String): List<ReviewResponse> =
         api.providerReviews("Bearer $token", providerId)
 
-    /* ── One-Time Delivery Skips ───────────────────── */
+    /* ── Meal Skips (server-side one-time delivery cancellation) ── */
 
-    /** A live stream of all currently skipped "subscriptionId::date" keys. */
-    val skippedDeliveriesFlow = skipStore.skippedFlow
+    /**
+     * Skip a single delivery date for a subscription.
+     * The subscription itself remains ACTIVE — only this date is cancelled.
+     */
+    suspend fun skipDelivery(
+        token: String,
+        subscriptionId: String,
+        skipDate: String,         // "yyyy-MM-dd"
+        reason: String? = null
+    ): MealSkipResponse =
+        api.skipMeal("Bearer $token", subscriptionId, MealSkipRequest(skipDate, reason))
 
-    /** Mark a single delivery date as skipped (does NOT cancel the subscription). */
-    suspend fun skipDelivery(skipKey: String) = skipStore.skip(skipKey)
+    /**
+     * Remove a previously registered skip (restore the delivery).
+     * [skipId] is the server-side MealSkip UUID returned when skipping.
+     */
+    suspend fun unskipDelivery(token: String, skipId: String) =
+        api.cancelSkip("Bearer $token", skipId)
 
-    /** Restore a previously skipped delivery date. */
-    suspend fun unskipDelivery(skipKey: String) = skipStore.unskip(skipKey)
+    /** Fetch all active skips for a given subscription. */
+    suspend fun getSkipsForSubscription(token: String, subscriptionId: String): List<MealSkipResponse> =
+        api.getSkipsForSubscription("Bearer $token", subscriptionId)
 }

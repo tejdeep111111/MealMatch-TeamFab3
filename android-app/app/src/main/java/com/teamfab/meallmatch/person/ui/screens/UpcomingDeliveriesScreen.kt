@@ -34,9 +34,19 @@ fun UpcomingDeliveriesScreen(
     vm: UpcomingDeliveriesViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show action errors (skip/unskip failures) as a snackbar
+    LaunchedEffect(state.actionError) {
+        state.actionError?.let {
+            snackbarHostState.showSnackbar(it)
+            vm.clearActionError()
+        }
+    }
 
     Scaffold(
         containerColor = NourishColors.Background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             Surface(
                 color = NourishColors.Surface.copy(alpha = 0.95f),
@@ -146,7 +156,7 @@ fun UpcomingDeliveriesScreen(
                     UpcomingDeliveryCard(
                         delivery = delivery,
                         position = index,
-                        onSkip = { vm.skip(delivery) },
+                        onSkip   = { reason -> vm.skip(delivery, reason) },
                         onUnskip = { vm.unskip(delivery) }
                     )
                 }
@@ -174,10 +184,11 @@ fun UpcomingDeliveriesScreen(
 private fun UpcomingDeliveryCard(
     delivery: UpcomingDelivery,
     position: Int,
-    onSkip: () -> Unit,
+    onSkip: (reason: String?) -> Unit,
     onUnskip: () -> Unit
 ) {
     var showConfirmSkip by remember { mutableStateOf(false) }
+    var reason by remember { mutableStateOf("") }
 
     val cardAlpha by animateColorAsState(
         targetValue = if (delivery.isSkipped)
@@ -359,7 +370,7 @@ private fun UpcomingDeliveryCard(
                     }
                 } else {
                     if (showConfirmSkip) {
-                        // Inline confirmation
+                        // Inline confirmation with optional reason
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = NourishColors.ErrorContainer.copy(alpha = 0.4f),
@@ -377,13 +388,36 @@ private fun UpcomingDeliveryCard(
                                     style = MaterialTheme.typography.bodySmall,
                                     color = NourishColors.OnSurfaceVariant
                                 )
+                                Spacer(Modifier.height(8.dp))
+                                OutlinedTextField(
+                                    value = reason,
+                                    onValueChange = { reason = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    placeholder = {
+                                        Text(
+                                            "Reason (optional)",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    },
+                                    singleLine = true,
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        unfocusedContainerColor = NourishColors.SurfaceContainerLowest,
+                                        focusedContainerColor = NourishColors.SurfaceContainerLowest,
+                                        unfocusedBorderColor = NourishColors.OutlineVariant.copy(alpha = 0.5f),
+                                        focusedBorderColor = NourishColors.Error.copy(alpha = 0.6f)
+                                    )
+                                )
                                 Spacer(Modifier.height(10.dp))
                                 Row(
                                     Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     OutlinedButton(
-                                        onClick = { showConfirmSkip = false },
+                                        onClick = {
+                                            showConfirmSkip = false
+                                            reason = ""
+                                        },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(10.dp)
                                     ) {
@@ -391,8 +425,9 @@ private fun UpcomingDeliveryCard(
                                     }
                                     Button(
                                         onClick = {
+                                            onSkip(reason.takeIf { it.isNotBlank() })
                                             showConfirmSkip = false
-                                            onSkip()
+                                            reason = ""
                                         },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(10.dp),

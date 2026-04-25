@@ -30,6 +30,7 @@ import com.teamfab.meallmatch.person.ui.vm.ProfileViewModel
 fun ProfileScreen(
     onBack: () -> Unit = {},
     onDietaryPreferences: () -> Unit = {},
+    onWeeklySummary: () -> Unit = {},
     onLogout: () -> Unit,
     vm: ProfileViewModel = hiltViewModel()
 ) {
@@ -185,6 +186,16 @@ fun ProfileScreen(
                     title = "Diet Preferences",
                     subtitle = "Manage your dietary goals & restrictions",
                     onClick = onDietaryPreferences
+                )
+
+                Spacer(Modifier.height(12.dp))
+
+                // Weekly Summary
+                ProfileMenuItem(
+                    emoji = "📊",
+                    title = "Weekly Summary",
+                    subtitle = "Your meal schedule, preferences & stats this week",
+                    onClick = onWeeklySummary
                 )
 
                 Spacer(Modifier.height(12.dp))
