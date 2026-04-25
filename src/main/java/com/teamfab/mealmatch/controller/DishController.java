@@ -23,8 +23,11 @@ public class DishController {
     @GetMapping("/compatible")
     public ResponseEntity<List<MenuItemResponse>> getCompatibleMeals(
             @AuthenticationPrincipal UserDetails userDetails) {
-        User user = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
-        String tags = (user != null) ? user.getDietaryTags() : null;
+        String tags = null;
+        if (userDetails != null) {
+            tags = userRepository.findByEmail(userDetails.getUsername())
+                    .map(User::getDietaryTags).orElse(null);
+        }
         return ResponseEntity.ok(menuItemService.getCompatibleMenuItems(tags));
     }
 

@@ -13,4 +13,5 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     List<Order> findByUser(User user);
     List<Order> findByProvider(Provider provider);
     List<Order> findBySubscription(Subscription subscription);
+    List<Order> findByProviderEmail(String email);
 }

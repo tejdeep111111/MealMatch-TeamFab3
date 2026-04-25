@@ -46,8 +46,7 @@ public class ReviewService {
     }
 
     public List<ReviewResponse> getReviewsByProvider(UUID providerId) {
-        return reviewRepository.findAll().stream()
-                .filter(r -> r.getProvider().getId().equals(providerId))
+        return reviewRepository.findByProviderId(providerId).stream()
                 .map(this::toResponse).collect(Collectors.toList());
     }
 

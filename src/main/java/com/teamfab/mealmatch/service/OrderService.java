@@ -50,8 +50,7 @@ public class OrderService {
     }
 
     public List<OrderResponse> getProviderOrders(String providerEmail) {
-        return orderRepository.findAll().stream()
-                .filter(o -> o.getProvider().getEmail().equals(providerEmail))
+        return orderRepository.findByProviderEmail(providerEmail).stream()
                 .map(this::toResponse).collect(Collectors.toList());
     }
 
