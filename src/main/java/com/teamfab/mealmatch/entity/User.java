@@ -2,10 +2,9 @@ package com.teamfab.mealmatch.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "users")
@@ -16,9 +15,10 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @UuidGenerator
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @Column(name = "id", columnDefinition = "VARCHAR(36)", updatable = false, nullable = false)
-    private UUID id;
+    private String id;
 
     @Column(nullable = false)
     private String name;

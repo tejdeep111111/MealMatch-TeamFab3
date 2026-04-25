@@ -21,23 +21,6 @@ interface MealMatchApi {
     @GET("/api/meals/compatible")
     suspend fun getCompatibleMeals(@Header("Authorization") bearer: String): List<Meal>
 
-    /* ── Orders ────────────────────────────────────── */
-
-    @GET("/api/orders")
-    suspend fun myOrders(@Header("Authorization") bearer: String): List<Order>
-
-    @POST("/api/orders")
-    suspend fun createOrder(
-        @Header("Authorization") bearer: String,
-        @Body body: OrderRequest
-    ): Order
-
-    @PATCH("/api/orders/{id}/status")
-    suspend fun updateOrderStatus(
-        @Header("Authorization") bearer: String,
-        @Path("id") id: String,
-        @Query("status") status: String
-    ): Order
 
     /* ── Subscriptions ─────────────────────────────── */
 

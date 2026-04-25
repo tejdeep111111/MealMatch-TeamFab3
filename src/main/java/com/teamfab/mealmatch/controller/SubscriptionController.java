@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/subscriptions")
@@ -33,19 +32,19 @@ public class SubscriptionController {
     }
 
     @PatchMapping("/{id}/pause")
-    public ResponseEntity<SubscriptionResponse> pause(@PathVariable UUID id,
+    public ResponseEntity<SubscriptionResponse> pause(@PathVariable String id,
                                                       @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(subscriptionService.pauseSubscription(id, userDetails.getUsername()));
     }
 
     @PatchMapping("/{id}/resume")
-    public ResponseEntity<SubscriptionResponse> resume(@PathVariable UUID id,
+    public ResponseEntity<SubscriptionResponse> resume(@PathVariable String id,
                                                        @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(subscriptionService.resumeSubscription(id, userDetails.getUsername()));
     }
 
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<SubscriptionResponse> cancel(@PathVariable UUID id,
+    public ResponseEntity<SubscriptionResponse> cancel(@PathVariable String id,
                                                        @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(subscriptionService.cancelSubscription(id, userDetails.getUsername()));
     }

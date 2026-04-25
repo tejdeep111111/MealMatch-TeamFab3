@@ -37,22 +37,12 @@ data class Meal(
         get() = if (name.isBlank()) "Untitled meal" else name
 }
 
-/* ── Order ────────────────────────────────────────── */
+/* ── Review ───────────────────────────────────────── */
 
-data class Order(
-    val id: String,
-    val subscriptionId: String? = null,
-    val userId: String? = null,
-    val providerId: String? = null,
-    val providerName: String? = null,
-    val scheduledDate: String? = null,
-    val status: String,
-    val price: Double = 0.0
-)
-
-data class OrderRequest(
-    val subscriptionId: String,
-    val scheduledDate: String
+data class ReviewRequest(
+    val providerId: String,
+    val rating: Int,
+    val comment: String? = null
 )
 
 /* ── Subscription ─────────────────────────────────── */
@@ -93,7 +83,6 @@ data class ReviewRequest(
 
 data class ReviewResponse(
     val id: String,
-    val orderId: String? = null,
     val userId: String? = null,
     val providerId: String? = null,
     val providerName: String? = null,

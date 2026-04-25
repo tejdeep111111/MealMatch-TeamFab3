@@ -4,17 +4,16 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Data
 @Builder
 public class SubscriptionResponse {
-    private UUID id;
-    private UUID userId;
+    private String id;
+    private String userId;
     private String userEmail;
-    private UUID providerId;
+    private String providerId;
     private String providerName;
-    private UUID menuItemId;
+    private String menuItemId;
     private String menuItemName;
     private String daysOfWeek;
     private String deliveryTime;

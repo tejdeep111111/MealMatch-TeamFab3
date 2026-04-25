@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -64,7 +63,7 @@ public class MenuItemService {
                 .map(this::toResponse).collect(Collectors.toList());
     }
 
-    public MenuItemResponse updateMenuItem(UUID id, MenuItemRequest request, String providerEmail) {
+    public MenuItemResponse updateMenuItem(String id, MenuItemRequest request, String providerEmail) {
         MenuItem item = menuItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Menu item not found"));
         if (!item.getProvider().getEmail().equals(providerEmail)) {
@@ -80,7 +79,7 @@ public class MenuItemService {
         return toResponse(menuItemRepository.save(item));
     }
 
-    public void deleteMenuItem(UUID id, String providerEmail) {
+    public void deleteMenuItem(String id, String providerEmail) {
         MenuItem item = menuItemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Menu item not found"));
         if (!item.getProvider().getEmail().equals(providerEmail)) {

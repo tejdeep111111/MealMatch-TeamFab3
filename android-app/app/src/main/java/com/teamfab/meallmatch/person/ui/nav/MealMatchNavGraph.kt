@@ -26,7 +26,6 @@ fun MealMatchNavGraph(navController: NavHostController) {
         composable(Routes.Home) {
             HomeScreen(
                 onMeal = { navController.navigate(Routes.mealDetails(it)) },
-                onOrders = { navController.navigate(Routes.Orders) },
                 onSubscriptions = { navController.navigate(Routes.Subscriptions) },
                 onProviders = { navController.navigate(Routes.Providers) },
                 onProfile = { navController.navigate(Routes.Profile) }
@@ -38,9 +37,6 @@ fun MealMatchNavGraph(navController: NavHostController) {
                 onBack = { navController.popBackStack() },
                 onProvider = { navController.navigate(Routes.providerDetails(it)) }
             )
-        }
-        composable(Routes.Orders) {
-            OrdersScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.Subscriptions) {
             SubscriptionsScreen(onBack = { navController.popBackStack() })

@@ -59,30 +59,14 @@ CREATE TABLE IF NOT EXISTS subscriptions (
     CONSTRAINT fk_sub_item     FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
 );
 
-CREATE TABLE IF NOT EXISTS orders (
-    id              VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    subscription_id VARCHAR(36)   NOT NULL,
-    user_id         VARCHAR(36)   NOT NULL,
-    provider_id     VARCHAR(36)   NOT NULL,
-    scheduled_date  DATE,
-    status          VARCHAR(30)   NOT NULL DEFAULT 'SCHEDULED',
-    price           DECIMAL(10,2) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_order_sub      FOREIGN KEY (subscription_id) REFERENCES subscriptions(id),
-    CONSTRAINT fk_order_user     FOREIGN KEY (user_id)         REFERENCES users(id),
-    CONSTRAINT fk_order_provider FOREIGN KEY (provider_id)     REFERENCES providers(id)
-);
-
 CREATE TABLE IF NOT EXISTS reviews (
     id          VARCHAR(36) NOT NULL DEFAULT (UUID()),
-    order_id    VARCHAR(36) NOT NULL UNIQUE,
     user_id     VARCHAR(36) NOT NULL,
     provider_id VARCHAR(36) NOT NULL,
     rating      INT         NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment     TEXT,
     created_at  DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    CONSTRAINT fk_review_order    FOREIGN KEY (order_id)    REFERENCES orders(id),
     CONSTRAINT fk_review_user     FOREIGN KEY (user_id)     REFERENCES users(id),
     CONSTRAINT fk_review_provider FOREIGN KEY (provider_id) REFERENCES providers(id)
 );

@@ -4,16 +4,15 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Data
 public class SubscriptionRequest {
 
     @NotNull
-    private UUID providerId;
+    private String providerId;
 
     @NotNull
-    private UUID menuItemId;
+    private String menuItemId;
 
     private String daysOfWeek;
 

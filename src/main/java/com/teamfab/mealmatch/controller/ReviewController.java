@@ -11,7 +11,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -32,7 +31,7 @@ public class ReviewController {
     }
 
     @GetMapping("/provider/{providerId}")
-    public ResponseEntity<List<ReviewResponse>> getProviderReviews(@PathVariable UUID providerId) {
+    public ResponseEntity<List<ReviewResponse>> getProviderReviews(@PathVariable String providerId) {
         return ResponseEntity.ok(reviewService.getReviewsByProvider(providerId));
     }
 }

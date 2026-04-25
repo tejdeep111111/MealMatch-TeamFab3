@@ -3,8 +3,10 @@ package com.teamfab.mealmatch.controller;
 import com.teamfab.mealmatch.dto.MenuItemRequest;
 import com.teamfab.mealmatch.dto.MenuItemResponse;
 import com.teamfab.mealmatch.dto.ProviderResponse;
+import com.teamfab.mealmatch.dto.SubscriptionResponse;
 import com.teamfab.mealmatch.service.MenuItemService;
 import com.teamfab.mealmatch.service.ProviderService;
+import com.teamfab.mealmatch.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/provider")
@@ -22,6 +23,7 @@ public class ProviderController {
 
     private final MenuItemService menuItemService;
     private final ProviderService providerService;
+    private final SubscriptionService subscriptionService;
 
     @GetMapping("/me")
     public ResponseEntity<ProviderResponse> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
@@ -40,16 +42,21 @@ public class ProviderController {
     }
 
     @PutMapping("/menu-items/{id}")
-    public ResponseEntity<MenuItemResponse> updateMenuItem(@PathVariable UUID id,
+    public ResponseEntity<MenuItemResponse> updateMenuItem(@PathVariable String id,
                                                            @Valid @RequestBody MenuItemRequest request,
                                                            @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(menuItemService.updateMenuItem(id, request, userDetails.getUsername()));
     }
 
     @DeleteMapping("/menu-items/{id}")
-    public ResponseEntity<Void> deleteMenuItem(@PathVariable UUID id,
+    public ResponseEntity<Void> deleteMenuItem(@PathVariable String id,
                                                @AuthenticationPrincipal UserDetails userDetails) {
         menuItemService.deleteMenuItem(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/subscriptions")
+    public ResponseEntity<List<SubscriptionResponse>> getMySubscriptions(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(subscriptionService.getProviderSubscriptions(userDetails.getUsername()));
     }
 }

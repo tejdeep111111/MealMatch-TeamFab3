@@ -2,19 +2,17 @@ package com.teamfab.mealmatch.service;
 
 import com.teamfab.mealmatch.dto.ReviewRequest;
 import com.teamfab.mealmatch.dto.ReviewResponse;
-import com.teamfab.mealmatch.entity.Order;
+import com.teamfab.mealmatch.entity.Provider;
 import com.teamfab.mealmatch.entity.Review;
 import com.teamfab.mealmatch.entity.User;
 import com.teamfab.mealmatch.exception.ResourceNotFoundException;
-import com.teamfab.mealmatch.exception.UnauthorizedException;
-import com.teamfab.mealmatch.repository.OrderRepository;
+import com.teamfab.mealmatch.repository.ProviderRepository;
 import com.teamfab.mealmatch.repository.ReviewRepository;
 import com.teamfab.mealmatch.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,22 +20,18 @@ import java.util.stream.Collectors;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final OrderRepository orderRepository;
+    private final ProviderRepository providerRepository;
     private final UserRepository userRepository;
 
     public ReviewResponse createReview(ReviewRequest request, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        Order order = orderRepository.findById(request.getOrderId())
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        if (!order.getUser().getEmail().equals(userEmail)) {
-            throw new UnauthorizedException("Not authorized to review this order");
-        }
+        Provider provider = providerRepository.findById(request.getProviderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
 
         Review review = Review.builder()
-                .order(order)
                 .user(user)
-                .provider(order.getProvider())
+                .provider(provider)
                 .rating(request.getRating())
                 .comment(request.getComment())
                 .build();
@@ -45,7 +39,7 @@ public class ReviewService {
         return toResponse(reviewRepository.save(review));
     }
 
-    public List<ReviewResponse> getReviewsByProvider(UUID providerId) {
+    public List<ReviewResponse> getReviewsByProvider(String providerId) {
         return reviewRepository.findByProviderId(providerId).stream()
                 .map(this::toResponse).collect(Collectors.toList());
     }
@@ -60,7 +54,6 @@ public class ReviewService {
     private ReviewResponse toResponse(Review r) {
         return ReviewResponse.builder()
                 .id(r.getId())
-                .orderId(r.getOrder().getId())
                 .userId(r.getUser().getId())
                 .providerId(r.getProvider().getId())
                 .providerName(r.getProvider().getName())

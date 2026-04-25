@@ -42,12 +42,6 @@ class MealRepository @Inject constructor(
 
     suspend fun compatibleMeals(token: String): List<Meal> = api.getCompatibleMeals("Bearer $token")
 
-    /* ── Orders ────────────────────────────────────── */
-
-    suspend fun myOrders(token: String): List<Order> = api.myOrders("Bearer $token")
-
-    suspend fun createOrder(token: String, subscriptionId: String, scheduledDate: String): Order =
-        api.createOrder("Bearer $token", OrderRequest(subscriptionId, scheduledDate))
 
     /* ── Subscriptions ─────────────────────────────── */
 

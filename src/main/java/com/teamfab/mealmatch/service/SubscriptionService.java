@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -58,19 +57,26 @@ public class SubscriptionService {
                 .map(this::toResponse).collect(Collectors.toList());
     }
 
-    public SubscriptionResponse pauseSubscription(UUID id, String userEmail) {
+    public List<SubscriptionResponse> getProviderSubscriptions(String providerEmail) {
+        Provider provider = providerRepository.findByEmail(providerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
+        return subscriptionRepository.findByProvider(provider).stream()
+                .map(this::toResponse).collect(Collectors.toList());
+    }
+
+    public SubscriptionResponse pauseSubscription(String id, String userEmail) {
         return updateStatus(id, userEmail, "PAUSED");
     }
 
-    public SubscriptionResponse resumeSubscription(UUID id, String userEmail) {
+    public SubscriptionResponse resumeSubscription(String id, String userEmail) {
         return updateStatus(id, userEmail, "ACTIVE");
     }
 
-    public SubscriptionResponse cancelSubscription(UUID id, String userEmail) {
+    public SubscriptionResponse cancelSubscription(String id, String userEmail) {
         return updateStatus(id, userEmail, "CANCELLED");
     }
 
-    private SubscriptionResponse updateStatus(UUID id, String userEmail, String status) {
+    private SubscriptionResponse updateStatus(String id, String userEmail, String status) {
         Subscription subscription = subscriptionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Subscription not found"));
         if (!subscription.getUser().getEmail().equals(userEmail)) {

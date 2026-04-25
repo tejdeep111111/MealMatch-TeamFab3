@@ -4,14 +4,6 @@
 
 USE mealmatch;
 
-SET FOREIGN_KEY_CHECKS = 0;
-DELETE FROM reviews;
-DELETE FROM orders;
-DELETE FROM subscriptions;
-DELETE FROM menu_items;
-DELETE FROM providers;
-DELETE FROM users;
-SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO users (id, name, email, phone, dietary_tags, location, password_hash, role) VALUES
   ('u-prov-001', 'TiffinWala Koramangala', 'provider.tiffin1@mealmatch.com', '9876543210', NULL, 'Koramangala, Bangalore',
