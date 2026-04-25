@@ -5,11 +5,13 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.UUID;
+
 @Data
 public class ReviewRequest {
 
     @NotNull
-    private String providerId;
+    private UUID orderId;
 
     @NotNull
     @Min(1) @Max(5)
