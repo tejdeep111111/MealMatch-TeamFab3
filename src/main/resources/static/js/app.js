@@ -121,8 +121,13 @@
 
     function showGlobalError(msg) {
         var el = document.getElementById('global-error');
-        el.innerHTML = escHtml(msg) +
-            ' <button class="btn btn-ghost" style="margin-left:12px;padding:6px 12px;font-size:12px" onclick="loadDashboard()">Retry</button>';
+        el.innerHTML = escHtml(msg);
+        var retryBtn = document.createElement('button');
+        retryBtn.className = 'btn btn-ghost';
+        retryBtn.style.cssText = 'margin-left:12px;padding:6px 12px;font-size:12px';
+        retryBtn.textContent = 'Retry';
+        retryBtn.addEventListener('click', window.loadDashboard);
+        el.appendChild(retryBtn);
         el.style.display = 'flex';
     }
 
@@ -291,15 +296,20 @@
         track.style.transform = 'translateX(' + (-carouselIndex * step) + 'px)';
     }
 
-    document.querySelector('[data-carousel-prev]').addEventListener('click', function () {
-        carouselIndex = Math.min(maxCarouselIndex(), Math.max(0, carouselIndex - 1));
-        updateCarousel();
-    });
-
-    document.querySelector('[data-carousel-next]').addEventListener('click', function () {
-        carouselIndex = Math.min(maxCarouselIndex(), Math.max(0, carouselIndex + 1));
-        updateCarousel();
-    });
+    var prevBtn = document.querySelector('[data-carousel-prev]');
+    var nextBtn = document.querySelector('[data-carousel-next]');
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+            carouselIndex = Math.min(maxCarouselIndex(), Math.max(0, carouselIndex - 1));
+            updateCarousel();
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+            carouselIndex = Math.min(maxCarouselIndex(), Math.max(0, carouselIndex + 1));
+            updateCarousel();
+        });
+    }
 
     window.addEventListener('resize', function () {
         carouselIndex = Math.min(carouselIndex, maxCarouselIndex());
@@ -464,47 +474,67 @@
     }
 
     // ---- New Item Modal ----
-    document.getElementById('new-item-btn').addEventListener('click', function () {
-        document.getElementById('new-item-modal').style.display = 'flex';
-    });
+    var newItemBtn = document.getElementById('new-item-btn');
+    var newItemModal = document.getElementById('new-item-modal');
+    var modalCloseBtn = document.getElementById('modal-close-btn');
+    var modalCancelBtn = document.getElementById('modal-cancel-btn');
+    var newItemForm = document.getElementById('new-item-form');
 
-    document.getElementById('modal-close-btn').addEventListener('click', function () {
-        document.getElementById('new-item-modal').style.display = 'none';
-    });
+    if (newItemBtn) {
+        newItemBtn.addEventListener('click', function () {
+            if (newItemModal) newItemModal.style.display = 'flex';
+        });
+    }
 
-    document.getElementById('new-item-modal').addEventListener('click', function (e) {
-        if (e.target === this) this.style.display = 'none';
-    });
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', function () {
+            if (newItemModal) newItemModal.style.display = 'none';
+        });
+    }
 
-    document.getElementById('new-item-form').addEventListener('submit', function (e) {
-        e.preventDefault();
-        var errorEl = document.getElementById('new-item-error');
-        errorEl.textContent = '';
+    if (modalCancelBtn) {
+        modalCancelBtn.addEventListener('click', function () {
+            if (newItemModal) newItemModal.style.display = 'none';
+        });
+    }
 
-        var name = document.getElementById('ni-name').value.trim();
-        var mealType = document.getElementById('ni-mealtype').value;
-        var dietaryTags = document.getElementById('ni-tags').value.trim();
-        var price = parseFloat(document.getElementById('ni-price').value);
-        var isAvailable = document.getElementById('ni-available').checked;
+    if (newItemModal) {
+        newItemModal.addEventListener('click', function (e) {
+            if (e.target === newItemModal) newItemModal.style.display = 'none';
+        });
+    }
 
-        if (!name || !mealType || isNaN(price) || price < 0) {
-            errorEl.textContent = 'Please fill in all required fields with valid values.';
-            return;
-        }
+    if (newItemForm) {
+        newItemForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var errorEl = document.getElementById('new-item-error');
+            if (errorEl) errorEl.textContent = '';
 
-        apiFetch('/api/provider/menu-items', {
-            method: 'POST',
-            body: JSON.stringify({ name: name, mealType: mealType, dietaryTags: dietaryTags, price: price, isAvailable: isAvailable })
-        })
-            .then(function () {
-                document.getElementById('new-item-modal').style.display = 'none';
-                e.target.reset();
-                return loadMenuItems();
+            var name = document.getElementById('ni-name').value.trim();
+            var mealType = document.getElementById('ni-mealtype').value;
+            var dietaryTags = document.getElementById('ni-tags').value.trim();
+            var price = parseFloat(document.getElementById('ni-price').value);
+            var isAvailable = document.getElementById('ni-available').checked;
+
+            if (!name || !mealType || isNaN(price) || price < 0) {
+                if (errorEl) errorEl.textContent = 'Please fill in all required fields with valid values.';
+                return;
+            }
+
+            apiFetch('/api/provider/menu-items', {
+                method: 'POST',
+                body: JSON.stringify({ name: name, mealType: mealType, dietaryTags: dietaryTags, price: price, isAvailable: isAvailable })
             })
-            .catch(function (err) {
-                errorEl.textContent = 'Failed to create item: ' + (err.message || 'Unknown error');
-            });
-    });
+                .then(function () {
+                    if (newItemModal) newItemModal.style.display = 'none';
+                    newItemForm.reset();
+                    return loadMenuItems();
+                })
+                .catch(function (err) {
+                    if (errorEl) errorEl.textContent = 'Failed to create item: ' + (err.message || 'Unknown error');
+                });
+        });
+    }
 
     // ---- Nav active state (visual only) ----
     document.querySelectorAll('.main-nav .nav-link').forEach(function (link) {
