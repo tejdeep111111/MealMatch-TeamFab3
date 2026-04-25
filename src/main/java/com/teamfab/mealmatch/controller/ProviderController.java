@@ -3,9 +3,11 @@ package com.teamfab.mealmatch.controller;
 import com.teamfab.mealmatch.dto.MenuItemRequest;
 import com.teamfab.mealmatch.dto.MenuItemResponse;
 import com.teamfab.mealmatch.dto.ProviderResponse;
+import com.teamfab.mealmatch.dto.ReviewResponse;
 import com.teamfab.mealmatch.dto.SubscriptionResponse;
 import com.teamfab.mealmatch.service.MenuItemService;
 import com.teamfab.mealmatch.service.ProviderService;
+import com.teamfab.mealmatch.service.ReviewService;
 import com.teamfab.mealmatch.service.SubscriptionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +26,17 @@ public class ProviderController {
     private final MenuItemService menuItemService;
     private final ProviderService providerService;
     private final SubscriptionService subscriptionService;
+    private final ReviewService reviewService;
 
     @GetMapping("/me")
     public ResponseEntity<ProviderResponse> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(providerService.getProviderByEmail(userDetails.getUsername()));
+    }
+
+    @GetMapping("/reviews")
+    public ResponseEntity<List<ReviewResponse>> getMyReviews(@AuthenticationPrincipal UserDetails userDetails) {
+        ProviderResponse provider = providerService.getProviderByEmail(userDetails.getUsername());
+        return ResponseEntity.ok(reviewService.getReviewsByProvider(provider.getId()));
     }
 
     @PostMapping("/menu-items")
@@ -46,6 +55,12 @@ public class ProviderController {
                                                            @Valid @RequestBody MenuItemRequest request,
                                                            @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(menuItemService.updateMenuItem(id, request, userDetails.getUsername()));
+    }
+
+    @PatchMapping("/menu-items/{id}/toggle")
+    public ResponseEntity<MenuItemResponse> toggleMenuItem(@PathVariable String id,
+                                                           @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(menuItemService.toggleAvailability(id, userDetails.getUsername()));
     }
 
     @DeleteMapping("/menu-items/{id}")

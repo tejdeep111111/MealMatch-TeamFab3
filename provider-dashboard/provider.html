@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MealMatch – Provider Dashboard</title>
+  <style>
+/* ===== RESET ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #0e0b1e;
+  color: #d8dce6;
+  min-height: 100vh;
+}
+a { cursor: pointer; text-decoration: none; }
+
+/* ===== UTILITY ===== */
+.hidden { display: none !important; }
+.error-msg { color: #ff6b8a; font-size: 0.85rem; margin-top: 8px; }
+.empty-msg { text-align: center; color: #4a4e6a; padding: 40px 0; font-size: 1rem; }
+
+/* ===== AUTH ===== */
+#auth-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0e0b1e 0%, #151233 40%, #1b1440 100%);
+  perspective: 1200px;
+  position: relative;
+  overflow: hidden;
+}
+#auth-screen::before {
+  content: '';
+  position: absolute; top: -40%; left: -20%; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(108,92,231,0.14) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+#auth-screen::after {
+  content: '';
+  position: absolute; bottom: -30%; right: -10%; width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(0,210,255,0.07) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+.auth-card {
+  background: rgba(20,18,46,0.88);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-radius: 24px; padding: 44px 40px;
+  width: 100%; max-width: 420px;
+  box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 100px rgba(108,92,231,0.07), inset 0 1px 0 rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.06);
+  transform: rotateX(2deg) rotateY(-1deg) translateZ(0);
+  transition: transform 0.5s cubic-bezier(.25,.46,.45,.94), box-shadow 0.5s ease;
+  position: relative; z-index: 2;
+}
+.auth-card:hover {
+  transform: rotateX(0deg) rotateY(0deg) translateY(-6px) translateZ(0);
+  box-shadow: 0 40px 100px rgba(0,0,0,.65), 0 0 120px rgba(108,92,231,0.1);
+}
+.auth-card h1 { font-size: 2.1rem; text-align: center; color: #a78bfa; text-shadow: 0 0 30px rgba(167,139,250,0.25); letter-spacing: -0.5px; }
+.auth-subtitle { text-align: center; color: #5a5e7e; margin-bottom: 28px; font-size: .9rem; }
+.tab-bar { display: flex; border-bottom: 1px solid rgba(255,255,255,0.06); margin-bottom: 24px; }
+.tab-bar .tab {
+  flex: 1; background: none; border: none; padding: 12px;
+  font-size: .95rem; cursor: pointer; color: #4a4e6a; font-weight: 500;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .25s;
+}
+.tab-bar .tab:hover { color: #9ba0c2; }
+.tab-bar .tab.active { color: #a78bfa; border-bottom-color: #a78bfa; text-shadow: 0 0 12px rgba(167,139,250,0.3); }
+
+label {
+  display: block; font-size: .75rem; color: #5a5e7e;
+  margin-bottom: 4px; margin-top: 16px;
+  font-weight: 600; text-transform: uppercase; letter-spacing: .8px;
+}
+input[type=text],
+input[type=email],
+input[type=password],
+input[type=number],
+select {
+  width: 100%; padding: 11px 16px;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px; font-size: .95rem;
+  transition: all .25s; outline: none;
+  background: rgba(255,255,255,0.035);
+  color: #d8dce6;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.2);
+}
+input::placeholder, select { color: #3d4060; }
+input:focus, select:focus {
+  border-color: rgba(108,92,231,0.5);
+  background: rgba(255,255,255,0.05);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.2), 0 0 0 3px rgba(108,92,231,0.1), 0 0 20px rgba(108,92,231,0.05);
+}
+select option { background: #1a1840; color: #d8dce6; }
+
+.btn-primary {
+  display: block; width: 100%; padding: 13px; margin-top: 22px;
+  background: linear-gradient(135deg, #6c5ce7 0%, #a855f7 100%);
+  color: #fff; border: none; border-radius: 12px;
+  font-size: 1rem; font-weight: 600; cursor: pointer;
+  transition: all .3s cubic-bezier(.25,.46,.45,.94); position: relative;
+  box-shadow: 0 6px 24px rgba(108,92,231,0.35), 0 2px 6px rgba(0,0,0,0.2);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  letter-spacing: 0.3px;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #7c6cf7 0%, #b870ff 100%);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 36px rgba(108,92,231,0.45), 0 4px 10px rgba(0,0,0,0.25);
+}
+.btn-primary:active { transform: translateY(0) scale(0.99); box-shadow: 0 4px 12px rgba(108,92,231,0.25); }
+.btn-secondary {
+  display: inline-block; padding: 10px 22px; margin-top: 12px;
+  background: rgba(255,255,255,0.05); color: #8b8fae; border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px; font-size: .9rem; font-weight: 500; cursor: pointer; transition: all .25s;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.08); color: #c5c8e0; transform: translateY(-1px); }
+
+/* ===== DASHBOARD LAYOUT ===== */
+#dashboard {
+  display: flex; min-height: 100vh;
+  background: linear-gradient(160deg, #0e0b1e 0%, #12102a 40%, #161337 70%, #0e0b1e 100%);
+}
+#sidebar {
+  width: 220px; color: #7a7fa0;
+  display: flex; flex-direction: column; padding: 28px 0;
+  position: fixed; top: 0; left: 0; height: 100vh; z-index: 100;
+  background: rgba(14,12,32,0.94);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255,255,255,0.04);
+  box-shadow: 4px 0 30px rgba(0,0,0,.4);
+}
+.brand {
+  font-size: 1.35rem; font-weight: 700; color: #a78bfa;
+  padding: 0 24px 32px;
+  text-shadow: 0 0 20px rgba(167,139,250,0.25);
+  letter-spacing: -0.3px;
+}
+nav { flex: 1; }
+.nav-link {
+  display: block; padding: 13px 24px; color: #4e5374;
+  font-size: .9rem; font-weight: 500; transition: all .3s; cursor: pointer;
+  border-left: 3px solid transparent; position: relative;
+  margin: 2px 0;
+}
+.nav-link:hover {
+  background: linear-gradient(90deg, rgba(108,92,231,.08), transparent);
+  color: #b0b4d0; transform: translateX(3px);
+}
+.nav-link.active {
+  background: linear-gradient(90deg, rgba(108,92,231,.14), transparent);
+  color: #a78bfa; border-left-color: #a78bfa;
+  text-shadow: 0 0 12px rgba(167,139,250,0.18);
+}
+.btn-logout {
+  margin: 16px; background: rgba(239,68,110,.07); color: #ef446e;
+  border: 1px solid rgba(239,68,110,0.18); border-radius: 12px; padding: 10px;
+  cursor: pointer; font-weight: 600; transition: all .3s; font-size: .88rem;
+}
+.btn-logout:hover {
+  background: #ef446e; color: #fff; transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(239,68,110,0.28);
+}
+#main-content {
+  margin-left: 220px; flex: 1; padding: 36px 40px;
+  max-width: calc(100vw - 220px);
+  position: relative;
+}
+/* Ambient glow blobs */
+#main-content::before {
+  content: '';
+  position: fixed; top: 8%; right: 4%; width: 420px; height: 420px;
+  background: radial-gradient(circle, rgba(108,92,231,0.05) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none; z-index: 0;
+}
+#main-content::after {
+  content: '';
+  position: fixed; bottom: 4%; left: 28%; width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(0,210,255,0.03) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none; z-index: 0;
+}
+.section { position: relative; z-index: 1; }
+.section h2 {
+  font-size: 1.5rem; margin-bottom: 24px; color: #e2e5f0;
+  font-weight: 700; letter-spacing: -0.3px;
+}
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.section-header h2 { margin-bottom: 0; }
+.section-header .btn-primary { width: auto; margin-top: 0; padding: 10px 22px; font-size: .9rem; }
+
+/* ===== PROFILE CARD ===== */
+.card {
+  background: rgba(20,18,44,0.6);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-radius: 20px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.4s cubic-bezier(.25,.46,.45,.94), box-shadow 0.4s ease;
+}
+.card:hover {
+  transform: translateY(-5px) rotateX(1deg);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.profile-card {
+  display: flex; align-items: center; gap: 22px;
+  padding: 28px; margin-bottom: 28px;
+  background: linear-gradient(135deg, rgba(20,18,44,0.7), rgba(28,20,56,0.5));
+  position: relative; overflow: hidden;
+}
+.profile-card::before {
+  content: '';
+  position: absolute; top: -50%; right: -20%; width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(108,92,231,0.07) 0%, transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+.profile-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: linear-gradient(135deg, #6c5ce7, #00cec9);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; color: #fff; font-weight: 700; flex-shrink: 0;
+  box-shadow: 0 8px 30px rgba(108,92,231,0.3), 0 0 40px rgba(0,206,201,0.12);
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.profile-avatar:hover { transform: scale(1.1) rotate(-5deg); box-shadow: 0 12px 40px rgba(108,92,231,0.4); }
+.profile-info h3 { font-size: 1.25rem; color: #edf0f7; font-weight: 700; }
+.profile-info p { font-size: .88rem; color: #5a5e7e; margin-top: 3px; }
+.profile-badge {
+  display: inline-block; margin-top: 8px; padding: 4px 12px;
+  background: rgba(108,92,231,0.12); color: #a78bfa; border-radius: 20px;
+  font-size: .78rem; font-weight: 600; border: 1px solid rgba(108,92,231,0.18);
+}
+
+/* ===== STATS ===== */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(210px,1fr));
+  gap: 20px; margin-bottom: 32px;
+}
+.stat-card {
+  background: linear-gradient(145deg, rgba(20,18,44,0.7), rgba(16,14,38,0.8));
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px; padding: 26px 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.05);
+  display: flex; flex-direction: column; gap: 10px;
+  transition: all .35s cubic-bezier(.25,.46,.45,.94);
+  position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute; top: -60%; right: -40%; width: 120px; height: 120px;
+  border-radius: 50%; pointer-events: none;
+  transition: all .4s ease;
+}
+.stat-card:nth-child(1)::before { background: radial-gradient(circle, rgba(108,92,231,0.12) 0%, transparent 70%); }
+.stat-card:nth-child(2)::before { background: radial-gradient(circle, rgba(0,206,201,0.12) 0%, transparent 70%); }
+.stat-card:nth-child(3)::before { background: radial-gradient(circle, rgba(253,203,110,0.10) 0%, transparent 70%); }
+.stat-card:nth-child(4)::before { background: radial-gradient(circle, rgba(239,68,110,0.10) 0%, transparent 70%); }
+.stat-card:nth-child(1) { border-left: 3px solid #6c5ce7; }
+.stat-card:nth-child(2) { border-left: 3px solid #00cec9; }
+.stat-card:nth-child(3) { border-left: 3px solid #fdcb6e; }
+.stat-card:nth-child(4) { border-left: 3px solid #ef446e; }
+.stat-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.stat-label { font-size: .78rem; color: #4e5374; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; position: relative; }
+.stat-value { font-size: 2rem; font-weight: 700; color: #edf0f7; position: relative; }
+
+/* ===== TABLE ===== */
+.table-wrap {
+  background: rgba(20,18,44,0.6);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px; overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+.table-wrap:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 50px rgba(0,0,0,.35);
+}
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+thead { background: linear-gradient(135deg, rgba(14,12,32,0.9), rgba(20,18,44,0.9)); }
+thead th {
+  padding: 15px 16px; text-align: left; color: #4e5374;
+  font-weight: 600; font-size: .78rem; letter-spacing: .8px; text-transform: uppercase;
+}
+tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: all .25s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(108,92,231,0.04); }
+tbody td { padding: 14px 16px; vertical-align: middle; color: #9ba0c2; }
+tbody td strong { color: #d8dce6; }
+
+/* ===== BADGES ===== */
+.badge {
+  display: inline-block; padding: 4px 12px; border-radius: 20px;
+  font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .3px;
+}
+.badge-active { background: rgba(0,206,201,0.12); color: #00cec9; border: 1px solid rgba(0,206,201,0.2); }
+.badge-paused { background: rgba(253,203,110,0.12); color: #fdcb6e; border: 1px solid rgba(253,203,110,0.2); }
+.badge-cancelled { background: rgba(239,68,110,0.12); color: #ef446e; border: 1px solid rgba(239,68,110,0.2); }
+.badge-yes { background: rgba(0,206,201,0.12); color: #00cec9; border: 1px solid rgba(0,206,201,0.2); }
+.badge-no  { background: rgba(239,68,110,0.12); color: #ef446e; border: 1px solid rgba(239,68,110,0.2); }
+
+/* ===== ACTION BUTTONS ===== */
+.btn-edit {
+  padding: 6px 14px; border-radius: 10px;
+  border: 1px solid rgba(108,92,231,0.3);
+  background: rgba(108,92,231,0.1); color: #a78bfa; cursor: pointer;
+  font-size: .82rem; font-weight: 600; margin-right: 6px; transition: all .3s;
+}
+.btn-edit:hover {
+  background: #6c5ce7; color: #fff; transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(108,92,231,0.35);
+}
+.btn-delete {
+  padding: 6px 14px; border-radius: 10px;
+  border: 1px solid rgba(239,68,110,0.3);
+  background: rgba(239,68,110,0.1); color: #ff6b8a; cursor: pointer;
+  font-size: .82rem; font-weight: 600; transition: all .3s;
+}
+.btn-delete:hover {
+  background: #ef446e; color: #fff; transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239,68,110,0.35);
+}
+
+/* ===== FORECAST TOTAL ===== */
+.forecast-total {
+  text-align: right; margin-top: 18px; font-size: 1rem; color: #7a7fa0;
+  padding: 16px 24px;
+  background: rgba(20,18,44,0.6);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.forecast-total strong { color: #a78bfa; font-size: 1.2rem; text-shadow: 0 0 16px rgba(167,139,250,0.2); }
+
+/* ===== REVIEWS ===== */
+#reviews-list { display: flex; flex-direction: column; gap: 16px; }
+.review-card {
+  background: rgba(20,18,44,0.6);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px; padding: 24px 28px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.05);
+  transition: all .35s cubic-bezier(.25,.46,.45,.94);
+  position: relative; overflow: hidden;
+}
+.review-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #6c5ce7, #00cec9, #a78bfa);
+  opacity: 0; transition: opacity 0.35s;
+}
+.review-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 50px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.review-card:hover::before { opacity: 1; }
+.review-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.review-author { font-weight: 700; color: #d8dce6; font-size: .95rem; }
+.review-date { font-size: .8rem; color: #4e5374; }
+.review-stars { color: #fdcb6e; font-size: 1.1rem; text-shadow: 0 0 10px rgba(253,203,110,0.2); }
+.review-comment { color: #7a7fa0; font-size: .93rem; line-height: 1.6; margin-top: 8px; }
+.review-item-tag {
+  display: inline-block; margin-top: 10px; padding: 4px 12px;
+  background: rgba(0,206,201,0.08); color: #00cec9;
+  border: 1px solid rgba(0,206,201,0.14);
+  border-radius: 20px; font-size: .78rem;
+}
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  perspective: 1000px;
+}
+.modal {
+  background: rgba(20,18,46,0.96);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-radius: 24px; padding: 36px;
+  width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 30px 100px rgba(0,0,0,.6), 0 0 80px rgba(108,92,231,0.05), inset 0 1px 0 rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.06);
+  animation: modalIn 0.4s cubic-bezier(.25,.46,.45,.94);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: rotateX(-10deg) translateY(40px) scale(0.92); }
+  to { opacity: 1; transform: rotateX(0) translateY(0) scale(1); }
+}
+.modal h3 { font-size: 1.3rem; margin-bottom: 4px; color: #e2e5f0; }
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between; margin-top: 16px;
+}
+.toggle-row label { margin: 0; font-size: .9rem; color: #7a7fa0; text-transform: none; letter-spacing: 0; }
+.toggle-row input[type=checkbox] { width: 20px; height: 20px; accent-color: #6c5ce7; cursor: pointer; }
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 22px; }
+.modal-actions .btn-primary { width: auto; margin-top: 0; padding: 10px 26px; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 28px; right: 28px; z-index: 1000;
+  background: rgba(20,18,46,0.96);
+  backdrop-filter: blur(16px);
+  color: #d8dce6; padding: 14px 24px;
+  border-radius: 14px; font-size: .93rem; font-weight: 500;
+  box-shadow: 0 12px 40px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.06);
+  animation: fadeSlideIn .3s cubic-bezier(.25,.46,.45,.94);
+}
+.toast.success { background: rgba(0,206,201,0.92); color: #fff; border-color: rgba(0,206,201,0.3); }
+.toast.error   { background: rgba(239,68,110,0.92); color: #fff; border-color: rgba(239,68,110,0.3); }
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ===== SKELETON ===== */
+.skeleton-lines { padding: 20px 24px; }
+.skeleton {
+  height: 16px; border-radius: 8px; margin-bottom: 10px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.025) 25%, rgba(255,255,255,0.055) 50%, rgba(255,255,255,0.025) 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite;
+}
+.skeleton.short { width: 60%; }
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(108,92,231,0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(108,92,231,0.25); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  #sidebar { width: 60px; }
+  .brand { display: none; }
+  .nav-link { padding: 14px; text-align: center; font-size: 1.2rem; }
+  #main-content { margin-left: 60px; padding: 24px 16px; max-width: calc(100vw - 60px); }
+}
+  </style>
+</head>
+<body>
+
+<!-- ===================== AUTH SCREENS ===================== -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1>🍽️ MealMatch</h1>
+    <p class="auth-subtitle">Provider Portal</p>
+
+    <div class="tab-bar">
+      <button class="tab active" onclick="showTab(event,'login')">Login</button>
+      <button class="tab" onclick="showTab(event,'register')">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <form id="login-form" onsubmit="handleLogin(event)">
+      <label>Email</label>
+      <input type="email" id="login-email" required placeholder="you@kitchen.com"/>
+      <label>Password</label>
+      <input type="password" id="login-password" required placeholder="••••••••"/>
+      <button type="submit" class="btn-primary">Login</button>
+      <p id="login-error" class="error-msg hidden"></p>
+    </form>
+
+    <!-- REGISTER -->
+    <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
+      <label>Full Name *</label>
+      <input type="text" id="reg-name" required placeholder="Sunrise Kitchen"/>
+      <label>Email *</label>
+      <input type="email" id="reg-email" required placeholder="you@kitchen.com"/>
+      <label>Password *</label>
+      <input type="password" id="reg-password" required placeholder="••••••••"/>
+      <label>Phone</label>
+      <input type="text" id="reg-phone" placeholder="+91 9876543210"/>
+      <label>Location</label>
+      <input type="text" id="reg-location" placeholder="Chennai, Tamil Nadu"/>
+      <label>Cuisine Type</label>
+      <input type="text" id="reg-cuisine" placeholder="South Indian, Vegan…"/>
+      <button type="submit" class="btn-primary">Create Provider Account</button>
+      <p id="register-error" class="error-msg hidden"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== DASHBOARD ===================== -->
+<div id="dashboard" class="hidden">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="brand">🍽️ MealMatch</div>
+    <nav>
+      <a class="nav-link active" onclick="navigate(event,'overview')">📊 Overview</a>
+      <a class="nav-link" onclick="navigate(event,'menu')">🍛 Menu Items</a>
+      <a class="nav-link" onclick="navigate(event,'subscriptions')">📋 Subscriptions</a>
+      <a class="nav-link" onclick="navigate(event,'forecast')">📈 Forecast</a>
+      <a class="nav-link" onclick="navigate(event,'reviews')">⭐ Reviews</a>
+    </nav>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main-content">
+
+    <!-- OVERVIEW -->
+    <section id="section-overview" class="section active">
+      <h2>Overview</h2>
+      <div id="profile-card" class="card profile-card">
+        <div class="skeleton-lines">
+          <div class="skeleton"></div>
+          <div class="skeleton short"></div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">Menu Items</span>
+          <span class="stat-value" id="stat-menu-val">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Active Subscriptions</span>
+          <span class="stat-value" id="stat-subs-val">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Proj. Weekly Revenue</span>
+          <span class="stat-value" id="stat-rev-val">—</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Avg. Rating</span>
+          <span class="stat-value" id="stat-rating-val">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENU ITEMS -->
+    <section id="section-menu" class="section hidden">
+      <div class="section-header">
+        <h2>Menu Items</h2>
+        <button class="btn-primary" onclick="openMenuModal(null)">+ Add Item</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th>Name</th><th>Meal Type</th><th>Dietary Tags</th>
+            <th>Price (₹)</th><th>Available</th><th>Actions</th>
+          </tr>
+          </thead>
+          <tbody id="menu-tbody"></tbody>
+        </table>
+      </div>
+      <p id="menu-empty" class="empty-msg hidden">No menu items yet. Click "+ Add Item" to get started.</p>
+    </section>
+
+    <!-- SUBSCRIPTIONS -->
+    <section id="section-subscriptions" class="section hidden">
+      <h2>Subscriber List</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th>Subscriber</th><th>Menu Item</th><th>Days</th>
+            <th>Delivery Time</th><th>Address</th><th>Status</th>
+            <th>Start</th><th>End</th>
+          </tr>
+          </thead>
+          <tbody id="subs-tbody"></tbody>
+        </table>
+      </div>
+      <p id="subs-empty" class="empty-msg hidden">No subscribers yet.</p>
+    </section>
+
+    <!-- FORECAST -->
+    <section id="section-forecast" class="section hidden">
+      <h2>Revenue Forecast</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+          <tr>
+            <th>Menu Item</th><th>Active Subscriptions</th><th>Projected Weekly Revenue (₹)</th>
+          </tr>
+          </thead>
+          <tbody id="forecast-tbody"></tbody>
+        </table>
+      </div>
+      <p id="forecast-empty" class="empty-msg hidden">No forecast data available.</p>
+      <div id="forecast-total-wrap" class="forecast-total hidden">
+        Total Projected Weekly Revenue: <strong id="forecast-total">₹0</strong>
+      </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section id="section-reviews" class="section hidden">
+      <h2>Customer Reviews</h2>
+      <div id="reviews-list"></div>
+      <p id="reviews-empty" class="empty-msg hidden">No reviews yet.</p>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===================== MENU MODAL ===================== -->
+<div id="menu-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h3 id="modal-title">Add Menu Item</h3>
+    <form id="menu-item-form" onsubmit="handleMenuItemSubmit(event)">
+      <input type="hidden" id="item-id"/>
+      <label>Item Name *</label>
+      <input type="text" id="item-name" required placeholder="Idli Sambar"/>
+      <label>Meal Type</label>
+      <select id="item-mealtype">
+        <option value="">— Select —</option>
+        <option value="BREAKFAST">Breakfast</option>
+        <option value="LUNCH">Lunch</option>
+        <option value="DINNER">Dinner</option>
+        <option value="SNACK">Snack</option>
+      </select>
+      <label>Dietary Tags</label>
+      <input type="text" id="item-tags" placeholder="VEGAN,GLUTEN_FREE"/>
+      <label>Price (₹) *</label>
+      <input type="number" id="item-price" required min="0" step="0.01" placeholder="120.00"/>
+      <div class="toggle-row">
+        <label>Available</label>
+        <input type="checkbox" id="item-available" checked/>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="closeMenuModal()">Cancel</button>
+        <button type="submit" class="btn-primary" id="modal-submit-btn">Save</button>
+      </div>
+      <p id="modal-error" class="error-msg hidden"></p>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== TOAST ===================== -->
+<div id="toast" class="toast hidden"></div>
+
+<script>
+/* =======================================================
+   MealMatch – Provider Dashboard
+   Covers every backend endpoint relevant to a Provider.
+   Dynamically uses localhost:8080 or IP:8080 based on how it's accessed.
+   ======================================================= */
+
+// Dynamically set API_BASE to work on localhost and from other devices
+const API_BASE = (() => {
+  const hostname = window.location.hostname;
+  // If accessing via file:// protocol or need explicit backend URL
+  if (window.location.protocol === 'file:') {
+    return 'http://localhost:8080';
+  }
+  // If already on port 8080, use same origin
+  if (window.location.port === '8080') {
+    return '';
+  }
+  // Otherwise, use the current hostname with port 8080
+  return `http://${hostname}:8080`;
+})();
+
+let token = localStorage.getItem('mm_token') || null;
+let providerProfile = null;
+
+/* ─────────────────────────────────────────────
+   CORE FETCH WRAPPER
+───────────────────────────────────────────── */
+
+async function api(method, path, body) {
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const res = await fetch(`${API_BASE}${path}`, opts);
+  if (res.status === 204) return null;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+/* ─────────────────────────────────────────────
+   UTILITIES
+───────────────────────────────────────────── */
+
+function esc(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function fmtDate(d) {
+  return d ? new Date(d).toLocaleDateString('en-IN') : '—';
+}
+
+function stars(n) {
+  const f = Math.round(n || 0);
+  return '★'.repeat(f) + '☆'.repeat(5 - f);
+}
+
+function tagBubbles(tags) {
+  if (!tags) return '<span style="color:#aaa">—</span>';
+  return tags.split(',').map(t =>
+    `<span style="display:inline-block;padding:3px 10px;margin:2px;background:rgba(108,92,231,0.1);color:#a78bfa;border:1px solid rgba(108,92,231,0.16);border-radius:14px;font-size:.78rem">${esc(t.trim())}</span>`
+  ).join('');
+}
+
+function showToast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type}`;
+  el.classList.remove('hidden');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.add('hidden'), 3500);
+}
+
+/* ─────────────────────────────────────────────
+   AUTH TAB TOGGLE
+───────────────────────────────────────────── */
+
+function showTab(e, tab) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
+}
+
+/* ─────────────────────────────────────────────
+   POST /api/auth/login
+───────────────────────────────────────────── */
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('login-error');
+  errEl.classList.add('hidden');
+  try {
+    const data = await api('POST', '/api/auth/login', {
+      email: document.getElementById('login-email').value.trim(),
+      password: document.getElementById('login-password').value,
+    });
+    token = data.token;
+    localStorage.setItem('mm_token', token);
+    bootDashboard();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+/* ─────────────────────────────────────────────
+   POST /api/auth/register  (role = PROVIDER)
+───────────────────────────────────────────── */
+
+async function handleRegister(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('register-error');
+  errEl.classList.add('hidden');
+  try {
+    const data = await api('POST', '/api/auth/register', {
+      name: document.getElementById('reg-name').value.trim(),
+      email: document.getElementById('reg-email').value.trim(),
+      password: document.getElementById('reg-password').value,
+      phone: document.getElementById('reg-phone').value.trim() || null,
+      location: document.getElementById('reg-location').value.trim() || null,
+      cuisineType: document.getElementById('reg-cuisine').value.trim() || null,
+      role: 'PROVIDER',
+    });
+    token = data.token;
+    localStorage.setItem('mm_token', token);
+    bootDashboard();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+/* ─────────────────────────────────────────────
+   BOOT DASHBOARD
+───────────────────────────────────────────── */
+
+async function bootDashboard() {
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  await loadOverview();
+}
+
+/* ─────────────────────────────────────────────
+   NAVIGATION
+───────────────────────────────────────────── */
+
+function navigate(e, section) {
+  document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById(`section-${section}`).classList.remove('hidden');
+  e.target.classList.add('active');
+
+  ({ overview: loadOverview, menu: loadMenuItems,
+     subscriptions: loadSubscriptions, forecast: loadForecast,
+     reviews: loadReviews })[section]?.();
+}
+
+function logout() {
+  token = null;
+  providerProfile = null;
+  localStorage.removeItem('mm_token');
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('auth-screen').classList.remove('hidden');
+}
+
+/* ─────────────────────────────────────────────
+   GET /api/provider/me   +   stats aggregation
+───────────────────────────────────────────── */
+
+async function loadOverview() {
+  try {
+    providerProfile = await api('GET', '/api/provider/me');
+    renderProfile(providerProfile);
+
+    const [menuRes, subsRes, forecastRes] = await Promise.allSettled([
+      api('GET', '/api/provider/menu-items'),
+      api('GET', '/api/provider/subscriptions'),
+      api('GET', '/api/forecast'),
+    ]);
+
+    const items    = menuRes.status === 'fulfilled'     ? menuRes.value     : [];
+    const subs     = subsRes.status === 'fulfilled'     ? subsRes.value     : [];
+    const forecast = forecastRes.status === 'fulfilled' ? forecastRes.value : [];
+
+    const activeSubs  = subs.filter(s => s.status === 'ACTIVE').length;
+    const totalRevenue = forecast.reduce((s, f) => s + parseFloat(f.projectedWeeklyRevenue || 0), 0);
+
+    document.getElementById('stat-menu-val').textContent    = items.length;
+    document.getElementById('stat-subs-val').textContent    = activeSubs;
+    document.getElementById('stat-rev-val').textContent     = `₹${totalRevenue.toFixed(2)}`;
+    document.getElementById('stat-rating-val').textContent  =
+      providerProfile.rating != null ? providerProfile.rating.toFixed(1) : '—';
+  } catch (err) {
+    showToast(`Failed to load overview: ${err.message}`, 'error');
+  }
+}
+
+function renderProfile(p) {
+  document.getElementById('profile-card').innerHTML = `
+    <div class="profile-avatar">${esc((p.name||'?')[0].toUpperCase())}</div>
+    <div class="profile-info">
+      <h3>${esc(p.name)}</h3>
+      <p>${esc(p.email)}${p.phone ? ' · ' + esc(p.phone) : ''}</p>
+      ${p.location    ? `<p>📍 ${esc(p.location)}</p>` : ''}
+      ${p.cuisineType ? `<span class="profile-badge">🍴 ${esc(p.cuisineType)}</span>` : ''}
+      ${p.rating != null ? `<span class="profile-badge" style="margin-left:8px">⭐ ${p.rating.toFixed(1)}</span>` : ''}
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────
+   GET  /api/provider/menu-items
+   POST /api/provider/menu-items
+   PUT  /api/provider/menu-items/{id}
+   DELETE /api/provider/menu-items/{id}
+───────────────────────────────────────────── */
+
+async function loadMenuItems() {
+  try {
+    const items = await api('GET', '/api/provider/menu-items');
+    const tbody = document.getElementById('menu-tbody');
+    const empty = document.getElementById('menu-empty');
+    tbody.innerHTML = '';
+
+    if (!items || !items.length) { empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+
+    items.forEach(item => {
+      const tr = document.createElement('tr');
+      // Serialize item safely for inline onclick
+      const json = esc(JSON.stringify(item));
+      tr.innerHTML = `
+        <td><strong>${esc(item.name)}</strong></td>
+        <td>${esc(item.mealType || '—')}</td>
+        <td>${tagBubbles(item.dietaryTags)}</td>
+        <td>₹${parseFloat(item.price).toFixed(2)}</td>
+        <td><span class="badge ${item.isAvailable ? 'badge-yes' : 'badge-no'}">${item.isAvailable ? 'Yes' : 'No'}</span></td>
+        <td>
+          <button class="btn-edit"   data-id="${item.id}">Edit</button>
+          <button class="btn-delete" data-id="${item.id}" data-name="${esc(item.name)}">Delete</button>
+        </td>`;
+      tr.querySelector('.btn-edit').addEventListener('click',   () => openMenuModal(item));
+      tr.querySelector('.btn-delete').addEventListener('click', () => deleteMenuItem(item.id, item.name));
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    showToast(`Failed to load menu items: ${err.message}`, 'error');
+  }
+}
+
+function openMenuModal(item) {
+  document.getElementById('modal-title').textContent       = item ? 'Edit Menu Item' : 'Add Menu Item';
+  document.getElementById('modal-submit-btn').textContent  = item ? 'Update' : 'Save';
+  document.getElementById('item-id').value                 = item?.id ?? '';
+  document.getElementById('item-name').value               = item?.name ?? '';
+  document.getElementById('item-mealtype').value           = item?.mealType ?? '';
+  document.getElementById('item-tags').value               = item?.dietaryTags ?? '';
+  document.getElementById('item-price').value              = item?.price ?? '';
+  document.getElementById('item-available').checked        = item ? item.isAvailable !== false : true;
+  document.getElementById('modal-error').classList.add('hidden');
+  document.getElementById('menu-modal').classList.remove('hidden');
+}
+
+function closeMenuModal() {
+  document.getElementById('menu-modal').classList.add('hidden');
+}
+
+async function handleMenuItemSubmit(e) {
+  e.preventDefault();
+  const id    = document.getElementById('item-id').value;
+  const errEl = document.getElementById('modal-error');
+  errEl.classList.add('hidden');
+
+  const payload = {
+    name:        document.getElementById('item-name').value.trim(),
+    mealType:    document.getElementById('item-mealtype').value || null,
+    dietaryTags: document.getElementById('item-tags').value.trim() || null,
+    price:       parseFloat(document.getElementById('item-price').value),
+    isAvailable: document.getElementById('item-available').checked,
+  };
+
+  try {
+    if (id) {
+      await api('PUT', `/api/provider/menu-items/${id}`, payload);
+      showToast('Menu item updated ✓');
+    } else {
+      await api('POST', '/api/provider/menu-items', payload);
+      showToast('Menu item created ✓');
+    }
+    closeMenuModal();
+    loadMenuItems();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+  }
+}
+
+async function deleteMenuItem(id, name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  try {
+    await api('DELETE', `/api/provider/menu-items/${id}`);
+    showToast(`"${name}" deleted`);
+    loadMenuItems();
+  } catch (err) {
+    showToast(`Delete failed: ${err.message}`, 'error');
+  }
+}
+
+/* ─────────────────────────────────────────────
+   GET /api/provider/subscriptions
+───────────────────────────────────────────── */
+
+async function loadSubscriptions() {
+  try {
+    const subs  = await api('GET', '/api/provider/subscriptions');
+    const tbody = document.getElementById('subs-tbody');
+    const empty = document.getElementById('subs-empty');
+    tbody.innerHTML = '';
+
+    if (!subs || !subs.length) { empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+
+    const cls = { ACTIVE: 'badge-active', PAUSED: 'badge-paused', CANCELLED: 'badge-cancelled' };
+
+    subs.forEach(s => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${esc(s.userEmail || '—')}</strong></td>
+        <td>${esc(s.menuItemName || '—')}</td>
+        <td>${esc(s.daysOfWeek   || '—')}</td>
+        <td>${esc(s.deliveryTime || '—')}</td>
+        <td>${esc(s.deliveryAddress || '—')}</td>
+        <td><span class="badge ${cls[s.status] || 'badge-active'}">${esc(s.status)}</span></td>
+        <td>${fmtDate(s.startDate)}</td>
+        <td>${fmtDate(s.endDate)}</td>`;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    showToast(`Failed to load subscriptions: ${err.message}`, 'error');
+  }
+}
+
+/* ─────────────────────────────────────────────
+   GET /api/forecast
+───────────────────────────────────────────── */
+
+async function loadForecast() {
+  try {
+    const data  = await api('GET', '/api/forecast');
+    const tbody = document.getElementById('forecast-tbody');
+    const empty = document.getElementById('forecast-empty');
+    const totalWrap = document.getElementById('forecast-total-wrap');
+    tbody.innerHTML = '';
+
+    if (!data || !data.length) {
+      empty.classList.remove('hidden');
+      totalWrap.classList.add('hidden');
+      return;
+    }
+    empty.classList.add('hidden');
+
+    let total = 0;
+    data.forEach(f => {
+      total += parseFloat(f.projectedWeeklyRevenue || 0);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${esc(f.menuItemName)}</strong></td>
+        <td>${f.activeSubscriptions}</td>
+        <td>₹${parseFloat(f.projectedWeeklyRevenue).toFixed(2)}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('forecast-total').textContent = `₹${total.toFixed(2)}`;
+    totalWrap.classList.remove('hidden');
+  } catch (err) {
+    showToast(`Failed to load forecast: ${err.message}`, 'error');
+  }
+}
+
+/* ─────────────────────────────────────────────
+   GET /api/reviews/provider/{providerId}
+───────────────────────────────────────────── */
+
+async function loadReviews() {
+  if (!providerProfile) {
+    try { providerProfile = await api('GET', '/api/provider/me'); }
+    catch (err) { showToast(`Failed to get provider info: ${err.message}`, 'error'); return; }
+  }
+  try {
+    const reviews = await api('GET', `/api/reviews/provider/${providerProfile.id}`);
+    const list  = document.getElementById('reviews-list');
+    const empty = document.getElementById('reviews-empty');
+    list.innerHTML = '';
+
+    if (!reviews || !reviews.length) { empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+
+    reviews.forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'review-card';
+      card.innerHTML = `
+        <div class="review-header">
+          <span class="review-author">${esc(r.userEmail || 'Anonymous')}</span>
+          <span class="review-date">${fmtDate(r.createdAt)}</span>
+        </div>
+        <div class="review-stars">${stars(r.rating)}
+          <span style="color:#888;font-size:.85rem">(${r.rating}/5)</span>
+        </div>
+        ${r.comment ? `<p class="review-comment">${esc(r.comment)}</p>` : ''}
+        ${r.menuItemName ? `<span class="review-item-tag">🍛 ${esc(r.menuItemName)}</span>` : ''}`;
+      list.appendChild(card);
+    });
+  } catch (err) {
+    showToast(`Failed to load reviews: ${err.message}`, 'error');
+  }
+}
+
+/* ─────────────────────────────────────────────
+   AUTO-BOOT  if token already in localStorage
+───────────────────────────────────────────── */
+
+(function init() {
+  if (token) {
+    bootDashboard().catch(() => {
+      localStorage.removeItem('mm_token');
+      token = null;
+    });
+  }
+})();
+</script>
+</body>
+</html>
+

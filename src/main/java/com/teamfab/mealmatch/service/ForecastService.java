@@ -36,11 +36,29 @@ public class ForecastService {
                     .collect(Collectors.toList());
 
             long activeCount = activeSubs.size();
+            
+            // Calculate total deliveries per week across all subscriptions
+            long totalDeliveriesPerWeek = activeSubs.stream()
+                    .mapToLong(this::countDeliveryDaysPerWeek)
+                    .sum();
+            
             BigDecimal projectedRevenue = item.getPrice()
-                    .multiply(BigDecimal.valueOf(activeCount))
-                    .multiply(BigDecimal.valueOf(7));
+                    .multiply(BigDecimal.valueOf(totalDeliveriesPerWeek));
 
             return new ForecastResponse(item.getId(), item.getName(), activeCount, projectedRevenue);
         }).collect(Collectors.toList());
+    }
+    
+    /**
+     * Count the number of delivery days per week for a subscription.
+     * If daysOfWeek is null or empty, assume daily delivery (7 days).
+     */
+    private long countDeliveryDaysPerWeek(Subscription subscription) {
+        String daysOfWeek = subscription.getDaysOfWeek();
+        if (daysOfWeek == null || daysOfWeek.trim().isEmpty()) {
+            return 7; // Default to daily if not specified
+        }
+        // Count comma-separated days (e.g., "MON,WED,FRI" = 3 days)
+        return daysOfWeek.split(",").length;
     }
 }

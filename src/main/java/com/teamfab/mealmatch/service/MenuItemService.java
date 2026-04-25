@@ -88,6 +88,16 @@ public class MenuItemService {
         menuItemRepository.delete(item);
     }
 
+    public MenuItemResponse toggleAvailability(String id, String providerEmail) {
+        MenuItem item = menuItemRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found"));
+        if (!item.getProvider().getEmail().equals(providerEmail)) {
+            throw new UnauthorizedException("Not authorized to update this menu item");
+        }
+        item.setIsAvailable(!item.getIsAvailable());
+        return toResponse(menuItemRepository.save(item));
+    }
+
     private MenuItemResponse toResponse(MenuItem item) {
         return MenuItemResponse.builder()
                 .id(item.getId())
