@@ -3,8 +3,10 @@ package com.teamfab.mealmatch.service;
 import com.teamfab.mealmatch.dto.AuthResponse;
 import com.teamfab.mealmatch.dto.LoginRequest;
 import com.teamfab.mealmatch.dto.RegisterRequest;
-import com.teamfab.mealmatch.entity.AppUser;
+import com.teamfab.mealmatch.entity.Provider;
+import com.teamfab.mealmatch.entity.User;
 import com.teamfab.mealmatch.exception.UnauthorizedException;
+import com.teamfab.mealmatch.repository.ProviderRepository;
 import com.teamfab.mealmatch.repository.UserRepository;
 import com.teamfab.mealmatch.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final ProviderRepository providerRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
@@ -30,19 +33,39 @@ public class AuthService {
             throw new UnauthorizedException("Email already registered");
         }
 
-        AppUser user = AppUser.builder()
+        String requestedRole = (request.getRole() != null && !request.getRole().isBlank())
+                ? request.getRole().toUpperCase() : "USER";
+        // Only allow USER or PROVIDER registration; prevent privilege escalation to ADMIN
+        String role = ("PROVIDER".equals(requestedRole)) ? "PROVIDER" : "USER";
+
+        User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .dietProfile(request.getDietProfile())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .phone(request.getPhone())
+                .location(request.getLocation())
+                .dietaryTags(request.getDietaryTags())
+                .role(role)
                 .build();
 
         userRepository.save(user);
 
+        if ("PROVIDER".equals(role) && !providerRepository.existsByEmail(request.getEmail())) {
+            Provider provider = Provider.builder()
+                    .name(request.getName())
+                    .email(request.getEmail())
+                    .phone(request.getPhone())
+                    .location(request.getLocation())
+                    .cuisineType(request.getCuisineType())
+                    .rating(0.0)
+                    .isActive(true)
+                    .build();
+            providerRepository.save(provider);
+        }
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String token = jwtUtil.generateToken(userDetails);
-        return new AuthResponse(token, user.getEmail(), user.getRole().name());
+        return new AuthResponse(token, user.getEmail(), role);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -50,12 +73,11 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
-        AppUser user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String token = jwtUtil.generateToken(userDetails);
-        return new AuthResponse(token, user.getEmail(), user.getRole().name());
+        return new AuthResponse(token, user.getEmail(), user.getRole());
     }
 }
-

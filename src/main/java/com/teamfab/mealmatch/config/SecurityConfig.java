@@ -31,10 +31,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/meals/**").permitAll()
+                .requestMatchers("/api/reviews/provider/**").permitAll()
                 .requestMatchers("/api/provider/**").hasRole("PROVIDER")
                 .requestMatchers("/api/forecast/**").hasRole("PROVIDER")
-                .requestMatchers("/api/meals/**").hasRole("USER")
-                .requestMatchers("/api/subscriptions/**").hasRole("USER")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
@@ -64,4 +64,3 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-

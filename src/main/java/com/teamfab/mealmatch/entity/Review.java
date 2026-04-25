@@ -4,21 +4,25 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "subscriptions")
+@Table(name = "reviews")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Subscription {
+public class Review {
 
     @Id
     @UuidGenerator
     @Column(name = "id", columnDefinition = "VARCHAR(36)", updatable = false, nullable = false)
     private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -28,25 +32,16 @@ public class Subscription {
     @JoinColumn(name = "provider_id", nullable = false)
     private Provider provider;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "menu_item_id", nullable = false)
-    private MenuItem menuItem;
+    @Column(nullable = false)
+    private Integer rating;
 
-    @Column(name = "days_of_week")
-    private String daysOfWeek;
+    private String comment;
 
-    @Column(name = "delivery_time")
-    private String deliveryTime;
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    @Column(name = "delivery_address")
-    private String deliveryAddress;
-
-    @Builder.Default
-    private String status = "ACTIVE";
-
-    @Column(name = "start_date")
-    private LocalDate startDate;
-
-    @Column(name = "end_date")
-    private LocalDate endDate;
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

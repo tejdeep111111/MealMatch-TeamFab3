@@ -1,22 +1,23 @@
 package com.teamfab.mealmatch.dto;
 
-import com.teamfab.mealmatch.enums.PlanFrequency;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
-public class MealPlanRequest {
+public class MenuItemRequest {
 
     @NotBlank
     private String name;
 
-    private String description;
+    private String mealType;
+
+    private String dietaryTags;
 
     @NotNull
-    private PlanFrequency frequency;
+    private BigDecimal price;
 
-    @NotNull
-    private Long dishId;
+    private Boolean isAvailable = true;
 }
-

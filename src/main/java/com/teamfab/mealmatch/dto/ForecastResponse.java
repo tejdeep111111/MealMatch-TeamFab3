@@ -3,11 +3,14 @@ package com.teamfab.mealmatch.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 public class ForecastResponse {
-    private String mealPlanName;
+    private UUID menuItemId;
+    private String menuItemName;
     private Long activeSubscriptions;
-    private Double projectedRevenue;
+    private BigDecimal projectedWeeklyRevenue;
 }
-
