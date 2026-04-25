@@ -10,6 +10,77 @@
     <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+    <!-- Login Overlay -->
+    <div id="login-overlay" class="overlay" style="display:none">
+        <div class="overlay-card">
+            <div style="font-size:22px;font-weight:700;color:var(--accent);margin-bottom:24px">MealMatch</div>
+            <h2 style="margin:0 0 8px;font-size:20px;font-weight:700">Provider Sign In</h2>
+            <p style="color:var(--text-dim);margin:0 0 28px;font-size:14px">Access your kitchen dashboard</p>
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="login-email">Email</label>
+                    <input class="form-input" id="login-email" type="email" placeholder="you@example.com" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="login-password">Password</label>
+                    <input class="form-input" id="login-password" type="password" placeholder="••••••••" required />
+                </div>
+                <div id="login-error" class="error-msg"></div>
+                <button class="btn btn-primary btn-block" type="submit">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Item Modal -->
+    <div id="new-item-modal" class="overlay" style="display:none">
+        <div class="overlay-card" style="max-width:480px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                <h2 style="margin:0;font-size:20px;font-weight:700">New Menu Item</h2>
+                <button class="icon-btn" id="modal-close-btn" aria-label="Close" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <form id="new-item-form">
+                <div class="form-group">
+                    <label class="form-label" for="ni-name">Name *</label>
+                    <input class="form-input" id="ni-name" type="text" placeholder="e.g. Dal Makhani" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="ni-mealtype">Meal Type *</label>
+                    <select class="form-input" id="ni-mealtype" required>
+                        <option value="">Select…</option>
+                        <option value="BREAKFAST">Breakfast</option>
+                        <option value="LUNCH">Lunch</option>
+                        <option value="DINNER">Dinner</option>
+                        <option value="SNACK">Snack</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="ni-tags">Dietary Tags (comma-separated)</label>
+                    <input class="form-input" id="ni-tags" type="text" placeholder="e.g. Vegan, Gluten-Free" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="ni-price">Price ($) *</label>
+                    <input class="form-input" id="ni-price" type="number" step="0.01" min="0" placeholder="0.00" required />
+                </div>
+                <div class="form-group" style="flex-direction:row;align-items:center;gap:10px">
+                    <input type="checkbox" id="ni-available" checked style="width:auto;accent-color:var(--accent)" />
+                    <label class="form-label" for="ni-available" style="margin:0;text-transform:none;letter-spacing:0">Available immediately</label>
+                </div>
+                <div id="new-item-error" class="error-msg"></div>
+                <div style="display:flex;gap:12px;margin-top:4px">
+                    <button class="btn btn-ghost" type="button" id="modal-cancel-btn">Cancel</button>
+                    <button class="btn btn-primary" style="flex:1" type="submit">Create Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Global Loading Spinner -->
+    <div id="global-spinner" class="spinner-overlay" style="display:none">
+        <div class="spinner"></div>
+    </div>
+
     <!-- Top navigation -->
     <header class="topbar">
         <div class="topbar-left">
@@ -21,6 +92,7 @@
             </nav>
         </div>
         <div class="topbar-right">
+            <button class="btn-logout" id="logout-btn" type="button">Logout</button>
             <button class="icon-btn" aria-label="Notifications">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
             </button>
@@ -33,6 +105,8 @@
         </div>
     </header>
 
+    <div id="global-error" class="error-banner" style="display:none"></div>
+
     <div class="layout">
         <!-- Sidebar -->
         <aside class="sidebar" aria-label="Sidebar">
@@ -41,8 +115,8 @@
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4 0-8 2-8 6v2h16v-2c0-4-4-6-8-6z"/></svg>
                 </div>
                 <div class="profile-meta">
-                    <h2 class="profile-name">Kitchen Central</h2>
-                    <p class="profile-tier">Premium Tier</p>
+                    <h2 class="profile-name" id="profile-name">Loading…</h2>
+                    <p class="profile-tier" id="profile-email"></p>
                 </div>
             </div>
 
@@ -87,7 +161,7 @@
                     <h1 class="page-title">Overview</h1>
                     <p class="page-subtitle">Today's service metrics and pending actions.</p>
                 </div>
-                <button class="btn btn-primary" type="button">
+                <button class="btn btn-primary" id="new-item-btn" type="button">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     New Item
                 </button>
@@ -102,7 +176,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h2v11h2V2"/><path d="M7 2v7"/><path d="M21 15V2a5 5 0 0 0-5 5v7c0 1.1.9 2 2 2h3z"/><path d="M19 22V15"/></svg>
                         </span>
                     </header>
-                    <div class="stat-value">24</div>
+                    <div class="stat-value" id="stat-menu-items">—</div>
                     <div class="stat-trend up">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
                         +2 this week
@@ -116,7 +190,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                         </span>
                     </header>
-                    <div class="stat-value">156</div>
+                    <div class="stat-value" id="stat-active-subs">—</div>
                     <div class="stat-trend up">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
                         +12% vs last month
@@ -130,7 +204,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                         </span>
                     </header>
-                    <div class="stat-value">38</div>
+                    <div class="stat-value" id="stat-pending-orders">—</div>
                     <div class="stat-trend neutral">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         For today's service
@@ -144,7 +218,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
                         </span>
                     </header>
-                    <div class="stat-value">$4.2k</div>
+                    <div class="stat-value" id="stat-projected-rev">—</div>
                     <div class="stat-trend up">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
                         On track
@@ -172,29 +246,7 @@
                                         <th>Time</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <tr>
-                                        <td class="mono">#ORD-9021</td>
-                                        <td>Sarah Jenkins</td>
-                                        <td>2x Truffle Risotto</td>
-                                        <td><span class="badge badge-preparing">Preparing</span></td>
-                                        <td class="muted">14m ago</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="mono">#ORD-9020</td>
-                                        <td>Marcus Thorne</td>
-                                        <td>1x Wagyu Burger</td>
-                                        <td><span class="badge badge-ready">Ready</span></td>
-                                        <td class="muted">22m ago</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="mono">#ORD-9019</td>
-                                        <td>Elena Rostova</td>
-                                        <td>3x Detox Salad</td>
-                                        <td><span class="badge badge-delivered">Delivered</span></td>
-                                        <td class="muted">45m ago</td>
-                                    </tr>
-                                </tbody>
+                                <tbody id="orders-tbody"></tbody>
                             </table>
                         </div>
                     </article>
@@ -213,70 +265,7 @@
                             </div>
                         </header>
                         <div class="carousel" data-carousel>
-                            <div class="carousel-track">
-                                <article class="dish-card">
-                                    <div class="dish-image dish-bg-risotto">
-                                        <span class="price-tag">$28</span>
-                                    </div>
-                                    <div class="dish-body">
-                                        <div class="dish-info">
-                                            <h3 class="dish-name">Wild Mushroom Ris…</h3>
-                                            <p class="dish-stock available">42 Available</p>
-                                        </div>
-                                        <label class="switch">
-                                            <input type="checkbox" checked />
-                                            <span class="slider"></span>
-                                        </label>
-                                    </div>
-                                </article>
-
-                                <article class="dish-card">
-                                    <div class="dish-image dish-bg-ribeye">
-                                        <span class="price-tag">$45</span>
-                                    </div>
-                                    <div class="dish-body">
-                                        <div class="dish-info">
-                                            <h3 class="dish-name">Charred Ribeye</h3>
-                                            <p class="dish-stock out">Out of Stock</p>
-                                        </div>
-                                        <label class="switch">
-                                            <input type="checkbox" />
-                                            <span class="slider"></span>
-                                        </label>
-                                    </div>
-                                </article>
-
-                                <article class="dish-card">
-                                    <div class="dish-image dish-bg-detox">
-                                        <span class="price-tag">$18</span>
-                                    </div>
-                                    <div class="dish-body">
-                                        <div class="dish-info">
-                                            <h3 class="dish-name">Green Detox Bowl</h3>
-                                            <p class="dish-stock available">15 Available</p>
-                                        </div>
-                                        <label class="switch">
-                                            <input type="checkbox" checked />
-                                            <span class="slider"></span>
-                                        </label>
-                                    </div>
-                                </article>
-
-                                <article class="dish-card">
-                                    <div class="dish-image dish-bg-pasta">
-                                        <span class="price-tag">$22</span>
-                                    </div>
-                                    <div class="dish-body">
-                                        <div class="dish-info">
-                                            <h3 class="dish-name">Lemon Butter Pasta</h3>
-                                            <p class="dish-stock available">28 Available</p>
-                                        </div>
-                                        <label class="switch">
-                                            <input type="checkbox" checked />
-                                            <span class="slider"></span>
-                                        </label>
-                                    </div>
-                                </article>
+                            <div class="carousel-track" id="carousel-track">
                             </div>
                         </div>
                     </article>
@@ -291,35 +280,7 @@
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                             </span>
                         </header>
-                        <ul class="forecast-list">
-                            <li class="forecast-row">
-                                <div class="forecast-meta">
-                                    <span class="forecast-day">Mon</span>
-                                    <span class="forecast-value">45 orders</span>
-                                </div>
-                                <div class="bar"><div class="bar-fill" style="width:53%"></div></div>
-                            </li>
-                            <li class="forecast-row">
-                                <div class="forecast-meta">
-                                    <span class="forecast-day">Tue</span>
-                                    <span class="forecast-value">62 orders</span>
-                                </div>
-                                <div class="bar"><div class="bar-fill" style="width:73%"></div></div>
-                            </li>
-                            <li class="forecast-row">
-                                <div class="forecast-meta">
-                                    <span class="forecast-day">Wed</span>
-                                    <span class="forecast-value highlight">85 orders (Est)</span>
-                                </div>
-                                <div class="bar"><div class="bar-fill" style="width:100%"></div></div>
-                            </li>
-                            <li class="forecast-row">
-                                <div class="forecast-meta">
-                                    <span class="forecast-day">Thu</span>
-                                    <span class="forecast-value muted">70 orders (Est)</span>
-                                </div>
-                                <div class="bar"><div class="bar-fill muted" style="width:82%"></div></div>
-                            </li>
+                        <ul class="forecast-list" id="forecast-list">
                         </ul>
                     </article>
 
@@ -329,24 +290,10 @@
                             <h2 class="panel-title">Recent Feedback</h2>
                             <span class="rating-pill">
                                 <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                                4.8
+                                <span id="rating-pill-value">—</span>
                             </span>
                         </header>
-                        <ul class="feedback-list">
-                            <li class="feedback-item">
-                                <div class="feedback-head">
-                                    <span class="feedback-quote">"Exceptional quality as always."</span>
-                                    <span class="feedback-time">2h</span>
-                                </div>
-                                <p class="feedback-body">The packaging kept the food perfectly warm, and the flavors in th…</p>
-                            </li>
-                            <li class="feedback-item">
-                                <div class="feedback-head">
-                                    <span class="feedback-quote">"Great vegan options."</span>
-                                    <span class="feedback-time">5h</span>
-                                </div>
-                                <p class="feedback-body">Really appreciate the expanding plant-based menu. The detox bowl…</p>
-                            </li>
+                        <ul class="feedback-list" id="feedback-list">
                         </ul>
                         <button class="btn btn-ghost btn-block" type="button">Read All Reviews</button>
                     </article>
