@@ -17,7 +17,8 @@ data class AuthState(
     val email: String? = null,
     val role: String? = null,
     val loading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val loggedOut: Boolean = false   // guards against re-login after logout
 )
 
 @HiltViewModel
@@ -34,14 +35,16 @@ class AuthViewModel @Inject constructor(
             tokenStore.tokenFlow
                 .distinctUntilChanged()
                 .collect { token ->
-                    _state.update { it.copy(token = token) }
+                    // Don't restore a stale token after explicit logout
+                    if (_state.value.loggedOut && token != null) return@collect
+                    _state.update { it.copy(token = token, loggedOut = if (token == null) it.loggedOut else false) }
                 }
         }
     }
 
     fun login(email: String, password: String) {
         viewModelScope.launch {
-            _state.update { it.copy(loading = true, error = null) }
+            _state.update { it.copy(loading = true, error = null, loggedOut = false) }
             try {
                 val response = repo.login(email, password)
                 _state.update { it.copy(loading = false, email = response.email, role = response.role) }
@@ -53,7 +56,7 @@ class AuthViewModel @Inject constructor(
 
     fun register(name: String, email: String, password: String, phone: String? = null, location: String? = null, dietaryTags: String? = null) {
         viewModelScope.launch {
-            _state.update { it.copy(loading = true, error = null) }
+            _state.update { it.copy(loading = true, error = null, loggedOut = false) }
             try {
                 val response = repo.register(name, email, password, phone, location, dietaryTags)
                 _state.update { it.copy(loading = false, email = response.email, role = response.role) }
@@ -65,8 +68,9 @@ class AuthViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch {
-            repo.logout()
-            _state.update { AuthState() }
+            // Mark as logged out FIRST to prevent the tokenFlow collector from restoring the old token
+            _state.update { it.copy(loggedOut = true, token = null, email = null, role = null) }
+            repo.logout()    // clears DataStore
         }
     }
 }

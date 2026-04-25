@@ -15,6 +15,7 @@ import com.teamfab.meallmatch.person.ui.vm.HomeViewModel
 @Composable
 fun HomeScreen(
     onMeal: (String) -> Unit,
+    onOrders: () -> Unit,
     onSubscriptions: () -> Unit,
     onProviders: () -> Unit,
     onProfile: () -> Unit,
@@ -39,6 +40,12 @@ fun HomeScreen(
                     onClick = { vm.refresh() },
                     icon = {},
                     label = { Text("Meals") }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onOrders,
+                    icon = {},
+                    label = { Text("Orders") }
                 )
                 NavigationBarItem(
                     selected = false,

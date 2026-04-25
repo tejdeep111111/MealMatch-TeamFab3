@@ -28,7 +28,7 @@ class MealRepository @Inject constructor(
         dietaryTags: String? = null
     ): AuthResponse {
         val response = api.register(
-            RegisterRequest(name, email, password, phone, location, dietaryTags, role = "CUSTOMER")
+            RegisterRequest(name, email, password, phone, location, dietaryTags, role = "USER")
         )
         tokenStore.set(response.token)
         return response

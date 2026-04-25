@@ -68,6 +68,12 @@ dependencies {
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
+    // Coil (image loading)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Google Fonts for Compose
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.7.5")
+
     // Hilt
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")

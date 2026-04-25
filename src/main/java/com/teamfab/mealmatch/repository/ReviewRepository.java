@@ -6,9 +6,12 @@ import com.teamfab.mealmatch.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-public interface ReviewRepository extends JpaRepository<Review, String> {
+public interface ReviewRepository extends JpaRepository<Review, UUID> {
     List<Review> findByUser(User user);
     List<Review> findByProvider(Provider provider);
-    List<Review> findByProviderId(String providerId);
+    Optional<Review> findByOrderId(UUID orderId);
+    List<Review> findByProviderId(UUID providerId);
 }

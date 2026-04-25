@@ -20,6 +20,7 @@ data class ProviderDetailsState(
     val provider: ProviderResponse? = null,
     val meals: List<Meal> = emptyList(),
     val reviews: List<ReviewResponse> = emptyList(),
+    val userTags: List<String> = emptyList(),
     val error: String? = null
 )
 
@@ -38,8 +39,17 @@ class ProviderDetailsViewModel @Inject constructor(
             try {
                 val token = tokenStore.tokenFlow.first().orEmpty()
 
-                // Fetch provider details
-                val provider = repo.provider(token, providerId)
+                // Try fetching the individual provider; fall back to finding it in the list
+                val provider = try {
+                    repo.provider(token, providerId)
+                } catch (_: Exception) {
+                    // Individual endpoint may not exist (404) — look up from full list
+                    try {
+                        repo.providers(token).find { it.id == providerId }
+                    } catch (_: Exception) {
+                        null
+                    }
+                }
 
                 // Fetch all meals and filter to this provider
                 val allMeals = repo.meals(token)
@@ -52,12 +62,24 @@ class ProviderDetailsViewModel @Inject constructor(
                     emptyList()
                 }
 
+                val tagsString = try { repo.getDietaryTags(token) } catch (_: Exception) { "" }
+                val userTags = tagsString.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+
+                // Build a fallback provider from meal data if we still don't have one
+                val finalProvider = provider ?: if (providerMeals.isNotEmpty()) {
+                    ProviderResponse(
+                        id = providerId,
+                        name = providerMeals.first().providerName ?: "Provider",
+                    )
+                } else null
+
                 _state.update {
                     it.copy(
                         loading = false,
-                        provider = provider,
+                        provider = finalProvider,
                         meals = providerMeals,
-                        reviews = reviews
+                        reviews = reviews,
+                        userTags = userTags
                     )
                 }
             } catch (e: Exception) {
@@ -66,4 +88,3 @@ class ProviderDetailsViewModel @Inject constructor(
         }
     }
 }
-

@@ -16,6 +16,7 @@ import javax.inject.Inject
 data class MealDetailsState(
     val loading: Boolean = false,
     val meal: Meal? = null,
+    val userTags: List<String> = emptyList(),
     val error: String? = null
 )
 
@@ -35,10 +36,12 @@ class MealDetailsViewModel @Inject constructor(
                 val token = tokenStore.tokenFlow.first().orEmpty()
                 // Backend has no single-meal endpoint; fetch all and find by id
                 val meal = repo.meals(token).firstOrNull { it.id == mealId }
+                val tagsString = try { repo.getDietaryTags(token) } catch (_: Exception) { "" }
+                val userTags = tagsString.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                 if (meal != null) {
-                    _state.update { it.copy(loading = false, meal = meal) }
+                    _state.update { it.copy(loading = false, meal = meal, userTags = userTags) }
                 } else {
-                    _state.update { it.copy(loading = false, error = "Meal not found") }
+                    _state.update { it.copy(loading = false, error = "Meal not found", userTags = userTags) }
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(loading = false, error = e.message ?: "Failed to load meal") }

@@ -1,5 +1,7 @@
 package com.teamfab.meallmatch.person.ui.nav
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -12,7 +14,14 @@ import com.teamfab.meallmatch.person.ui.vm.AuthViewModel
 fun MealMatchNavGraph(navController: NavHostController) {
     val authVm: AuthViewModel = hiltViewModel()
 
-    NavHost(navController = navController, startDestination = Routes.Login) {
+    NavHost(
+        navController = navController,
+        startDestination = Routes.Login,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None }
+    ) {
         composable(Routes.Login) {
             LoginScreen(
                 vm = authVm,
@@ -35,7 +44,20 @@ fun MealMatchNavGraph(navController: NavHostController) {
             MealDetailsScreen(
                 mealId = entry.arguments?.getString("mealId").orEmpty(),
                 onBack = { navController.popBackStack() },
-                onProvider = { navController.navigate(Routes.providerDetails(it)) }
+                onProvider = { navController.navigate(Routes.providerDetails(it)) },
+                onSubscribe = { navController.navigate(Routes.subscribeMeal(it)) }
+            )
+        }
+        composable(Routes.SubscribeMeal) { entry ->
+            SubscribeMealScreen(
+                mealId = entry.arguments?.getString("mealId").orEmpty(),
+                onBack = { navController.popBackStack() },
+                onSubscribed = {
+                    // Go to subscriptions list after subscribing
+                    navController.navigate(Routes.Subscriptions) {
+                        popUpTo(Routes.Home)
+                    }
+                }
             )
         }
         composable(Routes.Subscriptions) {
@@ -51,6 +73,7 @@ fun MealMatchNavGraph(navController: NavHostController) {
             ProviderDetailsScreen(
                 providerId = entry.arguments?.getString("providerId").orEmpty(),
                 onMeal = { navController.navigate(Routes.mealDetails(it)) },
+                onSubscribe = { navController.navigate(Routes.subscribeMeal(it)) },
                 onBack = { navController.popBackStack() }
             )
         }
