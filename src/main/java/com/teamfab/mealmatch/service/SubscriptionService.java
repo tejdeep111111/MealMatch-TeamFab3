@@ -2,19 +2,21 @@ package com.teamfab.mealmatch.service;
 
 import com.teamfab.mealmatch.dto.SubscriptionRequest;
 import com.teamfab.mealmatch.dto.SubscriptionResponse;
-import com.teamfab.mealmatch.entity.AppUser;
-import com.teamfab.mealmatch.entity.MealPlan;
+import com.teamfab.mealmatch.entity.MenuItem;
+import com.teamfab.mealmatch.entity.Provider;
 import com.teamfab.mealmatch.entity.Subscription;
-import com.teamfab.mealmatch.enums.SubscriptionStatus;
+import com.teamfab.mealmatch.entity.User;
 import com.teamfab.mealmatch.exception.ResourceNotFoundException;
 import com.teamfab.mealmatch.exception.UnauthorizedException;
-import com.teamfab.mealmatch.repository.MealPlanRepository;
+import com.teamfab.mealmatch.repository.MenuItemRepository;
+import com.teamfab.mealmatch.repository.ProviderRepository;
 import com.teamfab.mealmatch.repository.SubscriptionRepository;
 import com.teamfab.mealmatch.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,45 +25,52 @@ public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
     private final UserRepository userRepository;
-    private final MealPlanRepository mealPlanRepository;
+    private final ProviderRepository providerRepository;
+    private final MenuItemRepository menuItemRepository;
 
     public SubscriptionResponse subscribe(SubscriptionRequest request, String userEmail) {
-        AppUser user = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        MealPlan mealPlan = mealPlanRepository.findById(request.getMealPlanId())
-                .orElseThrow(() -> new ResourceNotFoundException("Meal plan not found"));
+        Provider provider = providerRepository.findById(request.getProviderId())
+                .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
+        MenuItem menuItem = menuItemRepository.findById(request.getMenuItemId())
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found"));
 
         Subscription subscription = Subscription.builder()
                 .user(user)
-                .mealPlan(mealPlan)
+                .provider(provider)
+                .menuItem(menuItem)
+                .daysOfWeek(request.getDaysOfWeek())
+                .deliveryTime(request.getDeliveryTime())
+                .deliveryAddress(request.getDeliveryAddress())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .status(SubscriptionStatus.ACTIVE)
+                .status("ACTIVE")
                 .build();
 
         return toResponse(subscriptionRepository.save(subscription));
     }
 
     public List<SubscriptionResponse> getMySubscriptions(String userEmail) {
-        AppUser user = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return subscriptionRepository.findByUser(user).stream()
                 .map(this::toResponse).collect(Collectors.toList());
     }
 
-    public SubscriptionResponse pauseSubscription(Long id, String userEmail) {
-        return updateStatus(id, userEmail, SubscriptionStatus.PAUSED);
+    public SubscriptionResponse pauseSubscription(UUID id, String userEmail) {
+        return updateStatus(id, userEmail, "PAUSED");
     }
 
-    public SubscriptionResponse resumeSubscription(Long id, String userEmail) {
-        return updateStatus(id, userEmail, SubscriptionStatus.ACTIVE);
+    public SubscriptionResponse resumeSubscription(UUID id, String userEmail) {
+        return updateStatus(id, userEmail, "ACTIVE");
     }
 
-    public SubscriptionResponse cancelSubscription(Long id, String userEmail) {
-        return updateStatus(id, userEmail, SubscriptionStatus.CANCELLED);
+    public SubscriptionResponse cancelSubscription(UUID id, String userEmail) {
+        return updateStatus(id, userEmail, "CANCELLED");
     }
 
-    private SubscriptionResponse updateStatus(Long id, String userEmail, SubscriptionStatus status) {
+    private SubscriptionResponse updateStatus(UUID id, String userEmail, String status) {
         Subscription subscription = subscriptionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Subscription not found"));
         if (!subscription.getUser().getEmail().equals(userEmail)) {
@@ -74,12 +83,18 @@ public class SubscriptionService {
     private SubscriptionResponse toResponse(Subscription s) {
         return SubscriptionResponse.builder()
                 .id(s.getId())
+                .userId(s.getUser().getId())
                 .userEmail(s.getUser().getEmail())
-                .mealPlanName(s.getMealPlan().getName())
+                .providerId(s.getProvider().getId())
+                .providerName(s.getProvider().getName())
+                .menuItemId(s.getMenuItem().getId())
+                .menuItemName(s.getMenuItem().getName())
+                .daysOfWeek(s.getDaysOfWeek())
+                .deliveryTime(s.getDeliveryTime())
+                .deliveryAddress(s.getDeliveryAddress())
+                .status(s.getStatus())
                 .startDate(s.getStartDate())
                 .endDate(s.getEndDate())
-                .status(s.getStatus())
                 .build();
     }
 }
-

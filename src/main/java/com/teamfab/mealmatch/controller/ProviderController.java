@@ -1,11 +1,10 @@
 package com.teamfab.mealmatch.controller;
 
-import com.teamfab.mealmatch.dto.DishRequest;
-import com.teamfab.mealmatch.dto.DishResponse;
-import com.teamfab.mealmatch.dto.MealPlanRequest;
-import com.teamfab.mealmatch.dto.MealPlanResponse;
-import com.teamfab.mealmatch.service.DishService;
-import com.teamfab.mealmatch.service.MealPlanService;
+import com.teamfab.mealmatch.dto.MenuItemRequest;
+import com.teamfab.mealmatch.dto.MenuItemResponse;
+import com.teamfab.mealmatch.dto.ProviderResponse;
+import com.teamfab.mealmatch.service.MenuItemService;
+import com.teamfab.mealmatch.service.ProviderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,65 +13,43 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/provider")
 @RequiredArgsConstructor
 public class ProviderController {
 
-    private final DishService dishService;
-    private final MealPlanService mealPlanService;
+    private final MenuItemService menuItemService;
+    private final ProviderService providerService;
 
-    // Dish endpoints
-    @PostMapping("/dishes")
-    public ResponseEntity<DishResponse> createDish(@Valid @RequestBody DishRequest request,
-                                                   @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(dishService.createDish(request, userDetails.getUsername()));
+    @GetMapping("/me")
+    public ResponseEntity<ProviderResponse> getMyProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(providerService.getProviderByEmail(userDetails.getUsername()));
     }
 
-    @GetMapping("/dishes")
-    public ResponseEntity<List<DishResponse>> getMyDishes(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(dishService.getDishesByProvider(userDetails.getUsername()));
-    }
-
-    @PutMapping("/dishes/{id}")
-    public ResponseEntity<DishResponse> updateDish(@PathVariable Long id,
-                                                   @Valid @RequestBody DishRequest request,
-                                                   @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(dishService.updateDish(id, request, userDetails.getUsername()));
-    }
-
-    @DeleteMapping("/dishes/{id}")
-    public ResponseEntity<Void> deleteDish(@PathVariable Long id,
-                                           @AuthenticationPrincipal UserDetails userDetails) {
-        dishService.deleteDish(id, userDetails.getUsername());
-        return ResponseEntity.noContent().build();
-    }
-
-    // Meal plan endpoints
-    @PostMapping("/meal-plans")
-    public ResponseEntity<MealPlanResponse> createMealPlan(@Valid @RequestBody MealPlanRequest request,
+    @PostMapping("/menu-items")
+    public ResponseEntity<MenuItemResponse> createMenuItem(@Valid @RequestBody MenuItemRequest request,
                                                            @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(mealPlanService.createMealPlan(request, userDetails.getUsername()));
+        return ResponseEntity.ok(menuItemService.createMenuItem(request, userDetails.getUsername()));
     }
 
-    @GetMapping("/meal-plans")
-    public ResponseEntity<List<MealPlanResponse>> getMyMealPlans(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(mealPlanService.getMealPlansByProvider(userDetails.getUsername()));
+    @GetMapping("/menu-items")
+    public ResponseEntity<List<MenuItemResponse>> getMyMenuItems(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(menuItemService.getMenuItemsByProvider(userDetails.getUsername()));
     }
 
-    @PutMapping("/meal-plans/{id}")
-    public ResponseEntity<MealPlanResponse> updateMealPlan(@PathVariable Long id,
-                                                           @Valid @RequestBody MealPlanRequest request,
+    @PutMapping("/menu-items/{id}")
+    public ResponseEntity<MenuItemResponse> updateMenuItem(@PathVariable UUID id,
+                                                           @Valid @RequestBody MenuItemRequest request,
                                                            @AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(mealPlanService.updateMealPlan(id, request, userDetails.getUsername()));
+        return ResponseEntity.ok(menuItemService.updateMenuItem(id, request, userDetails.getUsername()));
     }
 
-    @DeleteMapping("/meal-plans/{id}")
-    public ResponseEntity<Void> deleteMealPlan(@PathVariable Long id,
+    @DeleteMapping("/menu-items/{id}")
+    public ResponseEntity<Void> deleteMenuItem(@PathVariable UUID id,
                                                @AuthenticationPrincipal UserDetails userDetails) {
-        mealPlanService.deleteMealPlan(id, userDetails.getUsername());
+        menuItemService.deleteMenuItem(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
 }
-

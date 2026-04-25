@@ -1,7 +1,9 @@
 package com.teamfab.mealmatch.controller;
 
-import com.teamfab.mealmatch.dto.MealPlanResponse;
-import com.teamfab.mealmatch.service.MealPlanService;
+import com.teamfab.mealmatch.dto.MenuItemResponse;
+import com.teamfab.mealmatch.entity.User;
+import com.teamfab.mealmatch.repository.UserRepository;
+import com.teamfab.mealmatch.service.MenuItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,11 +17,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DishController {
 
-    private final MealPlanService mealPlanService;
+    private final MenuItemService menuItemService;
+    private final UserRepository userRepository;
 
     @GetMapping("/compatible")
-    public ResponseEntity<List<MealPlanResponse>> getCompatibleMeals(@AuthenticationPrincipal UserDetails userDetails) {
-        return ResponseEntity.ok(mealPlanService.getCompatibleMealPlans(userDetails.getUsername()));
+    public ResponseEntity<List<MenuItemResponse>> getCompatibleMeals(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        User user = userRepository.findByEmail(userDetails.getUsername()).orElse(null);
+        String tags = (user != null) ? user.getDietaryTags() : null;
+        return ResponseEntity.ok(menuItemService.getCompatibleMenuItems(tags));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<MenuItemResponse>> getAllMenuItems() {
+        return ResponseEntity.ok(menuItemService.getAllAvailableMenuItems());
     }
 }
-

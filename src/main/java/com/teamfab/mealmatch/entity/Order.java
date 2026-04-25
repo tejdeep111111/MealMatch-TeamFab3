@@ -4,21 +4,26 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "subscriptions")
+@Table(name = "orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Subscription {
+public class Order {
 
     @Id
     @UuidGenerator
     @Column(name = "id", columnDefinition = "VARCHAR(36)", updatable = false, nullable = false)
     private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscription_id", nullable = false)
+    private Subscription subscription;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -28,25 +33,12 @@ public class Subscription {
     @JoinColumn(name = "provider_id", nullable = false)
     private Provider provider;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "menu_item_id", nullable = false)
-    private MenuItem menuItem;
-
-    @Column(name = "days_of_week")
-    private String daysOfWeek;
-
-    @Column(name = "delivery_time")
-    private String deliveryTime;
-
-    @Column(name = "delivery_address")
-    private String deliveryAddress;
+    @Column(name = "scheduled_date")
+    private LocalDate scheduledDate;
 
     @Builder.Default
-    private String status = "ACTIVE";
+    private String status = "SCHEDULED";
 
-    @Column(name = "start_date")
-    private LocalDate startDate;
-
-    @Column(name = "end_date")
-    private LocalDate endDate;
+    @Column(nullable = false)
+    private BigDecimal price;
 }

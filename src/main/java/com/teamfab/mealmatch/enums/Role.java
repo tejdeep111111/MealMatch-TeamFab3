@@ -1,6 +1,4 @@
 package com.teamfab.mealmatch.enums;
-
 public enum Role {
-    USER,
-    PROVIDER
+    USER, PROVIDER, ADMIN
 }
