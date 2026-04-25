@@ -76,7 +76,7 @@ data class SubscriptionResponse(
 /* ── Review ───────────────────────────────────────── */
 
 data class ReviewRequest(
-    val orderId: String,
+    val providerId: String,
     val rating: Int,
     val comment: String? = null
 )

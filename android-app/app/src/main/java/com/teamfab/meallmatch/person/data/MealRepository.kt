@@ -62,8 +62,8 @@ class MealRepository @Inject constructor(
 
     /* ── Reviews ───────────────────────────────────── */
 
-    suspend fun createReview(token: String, orderId: String, rating: Int, comment: String?): ReviewResponse =
-        api.createReview("Bearer $token", ReviewRequest(orderId, rating, comment))
+    suspend fun createReview(token: String, providerId: String, rating: Int, comment: String?): ReviewResponse =
+        api.createReview("Bearer $token", ReviewRequest(providerId, rating, comment))
 
     suspend fun myReviews(token: String): List<ReviewResponse> =
         api.myReviews("Bearer $token")
