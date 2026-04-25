@@ -5,6 +5,7 @@
     <application
         android:name=".person.MealMatchApp"
         android:label="MealMatch"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:theme="@style/Theme.MealMatch">
         <activity
             android:name=".person.MainActivity"

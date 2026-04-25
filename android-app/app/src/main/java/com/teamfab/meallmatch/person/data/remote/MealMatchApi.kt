@@ -4,15 +4,106 @@ import com.teamfab.meallmatch.person.data.model.*
 import retrofit2.http.*
 
 interface MealMatchApi {
-    @POST("/auth/login")
-    suspend fun login(@Body body: AuthRequest): AuthResponse
 
-    @GET("/meals")
+    /* ── Auth ──────────────────────────────────────── */
+
+    @POST("/api/auth/login")
+    suspend fun login(@Body body: LoginRequest): AuthResponse
+
+    @POST("/api/auth/register")
+    suspend fun register(@Body body: RegisterRequest): AuthResponse
+
+    /* ── Meals (MenuItems) ─────────────────────────── */
+
+    @GET("/api/meals")
     suspend fun getMeals(@Header("Authorization") bearer: String): List<Meal>
 
-    @GET("/meals/{id}")
-    suspend fun getMeal(@Header("Authorization") bearer: String, @Path("id") id: String): Meal
+    @GET("/api/meals/compatible")
+    suspend fun getCompatibleMeals(@Header("Authorization") bearer: String): List<Meal>
 
-    @GET("/orders/my")
+    /* ── Orders ────────────────────────────────────── */
+
+    @GET("/api/orders")
     suspend fun myOrders(@Header("Authorization") bearer: String): List<Order>
+
+    @POST("/api/orders")
+    suspend fun createOrder(
+        @Header("Authorization") bearer: String,
+        @Body body: OrderRequest
+    ): Order
+
+    @PATCH("/api/orders/{id}/status")
+    suspend fun updateOrderStatus(
+        @Header("Authorization") bearer: String,
+        @Path("id") id: String,
+        @Query("status") status: String
+    ): Order
+
+    /* ── Subscriptions ─────────────────────────────── */
+
+    @GET("/api/subscriptions")
+    suspend fun mySubscriptions(@Header("Authorization") bearer: String): List<SubscriptionResponse>
+
+    @POST("/api/subscriptions")
+    suspend fun subscribe(
+        @Header("Authorization") bearer: String,
+        @Body body: SubscriptionRequest
+    ): SubscriptionResponse
+
+    @PATCH("/api/subscriptions/{id}/pause")
+    suspend fun pauseSubscription(
+        @Header("Authorization") bearer: String,
+        @Path("id") id: String
+    ): SubscriptionResponse
+
+    @PATCH("/api/subscriptions/{id}/resume")
+    suspend fun resumeSubscription(
+        @Header("Authorization") bearer: String,
+        @Path("id") id: String
+    ): SubscriptionResponse
+
+    @PATCH("/api/subscriptions/{id}/cancel")
+    suspend fun cancelSubscription(
+        @Header("Authorization") bearer: String,
+        @Path("id") id: String
+    ): SubscriptionResponse
+
+    /* ── Reviews ───────────────────────────────────── */
+
+    @POST("/api/reviews")
+    suspend fun createReview(
+        @Header("Authorization") bearer: String,
+        @Body body: ReviewRequest
+    ): ReviewResponse
+
+    @GET("/api/reviews/my")
+    suspend fun myReviews(@Header("Authorization") bearer: String): List<ReviewResponse>
+
+    @GET("/api/reviews/provider/{providerId}")
+    suspend fun providerReviews(
+        @Header("Authorization") bearer: String,
+        @Path("providerId") providerId: String
+    ): List<ReviewResponse>
+
+    /* ── User / Dietary Preferences ────────────────── */
+
+    @GET("/api/user/dietary-tags")
+    suspend fun getDietaryTags(@Header("Authorization") bearer: String): Map<String, String>
+
+    @PUT("/api/user/dietary-tags")
+    suspend fun updateDietaryTags(
+        @Header("Authorization") bearer: String,
+        @Body body: Map<String, String>
+    ): Map<String, String>
+
+    /* ── Providers ─────────────────────────────────── */
+
+    @GET("/api/user/providers")
+    suspend fun getProviders(@Header("Authorization") bearer: String): List<ProviderResponse>
+
+    @GET("/api/user/providers/{id}")
+    suspend fun getProvider(
+        @Header("Authorization") bearer: String,
+        @Path("id") id: String
+    ): ProviderResponse
 }

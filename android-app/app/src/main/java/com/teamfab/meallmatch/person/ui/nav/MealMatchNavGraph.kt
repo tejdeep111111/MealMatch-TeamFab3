@@ -27,21 +27,44 @@ fun MealMatchNavGraph(navController: NavHostController) {
             HomeScreen(
                 onMeal = { navController.navigate(Routes.mealDetails(it)) },
                 onOrders = { navController.navigate(Routes.Orders) },
+                onSubscriptions = { navController.navigate(Routes.Subscriptions) },
+                onProviders = { navController.navigate(Routes.Providers) },
                 onProfile = { navController.navigate(Routes.Profile) }
             )
         }
         composable(Routes.MealDetails) { entry ->
             MealDetailsScreen(
                 mealId = entry.arguments?.getString("mealId").orEmpty(),
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onProvider = { navController.navigate(Routes.providerDetails(it)) }
             )
         }
         composable(Routes.Orders) {
             OrdersScreen(onBack = { navController.popBackStack() })
         }
+        composable(Routes.Subscriptions) {
+            SubscriptionsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.Providers) {
+            ProvidersScreen(
+                onProvider = { navController.navigate(Routes.providerDetails(it)) },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.ProviderDetails) { entry ->
+            ProviderDetailsScreen(
+                providerId = entry.arguments?.getString("providerId").orEmpty(),
+                onMeal = { navController.navigate(Routes.mealDetails(it)) },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.DietaryPreferences) {
+            DietaryPreferencesScreen(onBack = { navController.popBackStack() })
+        }
         composable(Routes.Profile) {
             ProfileScreen(
                 onBack = { navController.popBackStack() },
+                onDietaryPreferences = { navController.navigate(Routes.DietaryPreferences) },
                 onLogout = {
                     authVm.logout()
                     navController.navigate(Routes.Login) {

@@ -6,9 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onBack: () -> Unit,
+    onDietaryPreferences: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     Scaffold(
@@ -25,7 +27,18 @@ fun ProfileScreen(
                 .padding(16.dp)
                 .fillMaxWidth()
         ) {
-            Spacer(Modifier.height(16.dp))
+            Text("Settings", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(12.dp))
+
+            OutlinedButton(
+                onClick = onDietaryPreferences,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("🍽️  Diet Preferences")
+            }
+
+            Spacer(Modifier.height(24.dp))
+
             Button(
                 onClick = onLogout,
                 modifier = Modifier.fillMaxWidth()

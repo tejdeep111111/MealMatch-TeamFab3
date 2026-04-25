@@ -1,5 +1,6 @@
 package com.teamfab.meallmatch.person.ui.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material3.*
@@ -10,20 +11,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.teamfab.meallmatch.person.ui.vm.OrdersViewModel
+import com.teamfab.meallmatch.person.ui.vm.ProvidersViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OrdersScreen(
+fun ProvidersScreen(
+    onProvider: (String) -> Unit,
     onBack: () -> Unit,
-    vm: OrdersViewModel = hiltViewModel()
+    vm: ProvidersViewModel = hiltViewModel()
 ) {
     val state by vm.state.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("My Orders") },
+                title = { Text("Meal Providers") },
                 navigationIcon = { TextButton(onClick = onBack) { Text("Back") } }
             )
         }
@@ -32,9 +34,7 @@ fun OrdersScreen(
             state.loading -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            ) { CircularProgressIndicator() }
 
             state.error != null -> Column(Modifier.padding(padding).padding(16.dp)) {
                 Text("Error: ${state.error}", color = MaterialTheme.colorScheme.error)
@@ -42,30 +42,37 @@ fun OrdersScreen(
                 Button(onClick = { vm.load() }) { Text("Retry") }
             }
 
-            state.orders.isEmpty() -> Box(
+            state.providers.isEmpty() -> Box(
                 Modifier.fillMaxSize().padding(padding),
                 contentAlignment = Alignment.Center
-            ) {
-                Text("No orders yet.")
-            }
+            ) { Text("No providers found.") }
 
             else -> LazyColumn(
                 modifier = Modifier.padding(padding),
                 contentPadding = PaddingValues(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(state.orders) { order ->
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(12.dp)) {
-                            Text(order.providerName ?: "Unknown provider", style = MaterialTheme.typography.titleMedium)
+                items(state.providers) { provider ->
+                    Card(
+                        Modifier.fillMaxWidth().clickable { onProvider(provider.id) }
+                    ) {
+                        Column(Modifier.padding(14.dp)) {
+                            Text(
+                                provider.name ?: "Unknown",
+                                style = MaterialTheme.typography.titleMedium
+                            )
                             Spacer(Modifier.height(4.dp))
-                            order.scheduledDate?.let {
-                                Text("Date: $it", style = MaterialTheme.typography.bodyMedium)
-                                Spacer(Modifier.height(4.dp))
+                            provider.cuisineType?.let {
+                                Text("Cuisine: $it", style = MaterialTheme.typography.bodyMedium)
+                                Spacer(Modifier.height(2.dp))
                             }
-                            Text("Status: ${order.status}", style = MaterialTheme.typography.bodyMedium)
-                            Spacer(Modifier.height(4.dp))
-                            Text("Price: ₹${order.price}", style = MaterialTheme.typography.bodyLarge)
+                            provider.location?.let {
+                                Text("📍 $it", style = MaterialTheme.typography.bodySmall)
+                                Spacer(Modifier.height(2.dp))
+                            }
+                            provider.rating?.let {
+                                Text("⭐ $it", style = MaterialTheme.typography.bodySmall)
+                            }
                         }
                     }
                 }
@@ -73,3 +80,4 @@ fun OrdersScreen(
         }
     }
 }
+

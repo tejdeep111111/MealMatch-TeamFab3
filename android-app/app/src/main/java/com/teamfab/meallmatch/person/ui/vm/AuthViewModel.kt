@@ -14,6 +14,8 @@ import javax.inject.Inject
 
 data class AuthState(
     val token: String? = null,
+    val email: String? = null,
+    val role: String? = null,
     val loading: Boolean = false,
     val error: String? = null
 )
@@ -41,10 +43,22 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(loading = true, error = null) }
             try {
-                repo.login(email, password)
-                _state.update { it.copy(loading = false) }
+                val response = repo.login(email, password)
+                _state.update { it.copy(loading = false, email = response.email, role = response.role) }
             } catch (e: Exception) {
                 _state.update { it.copy(loading = false, error = e.message ?: "Login failed") }
+            }
+        }
+    }
+
+    fun register(name: String, email: String, password: String, phone: String? = null, location: String? = null, dietaryTags: String? = null) {
+        viewModelScope.launch {
+            _state.update { it.copy(loading = true, error = null) }
+            try {
+                val response = repo.register(name, email, password, phone, location, dietaryTags)
+                _state.update { it.copy(loading = false, email = response.email, role = response.role) }
+            } catch (e: Exception) {
+                _state.update { it.copy(loading = false, error = e.message ?: "Registration failed") }
             }
         }
     }
@@ -52,6 +66,7 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         viewModelScope.launch {
             repo.logout()
+            _state.update { AuthState() }
         }
     }
 }

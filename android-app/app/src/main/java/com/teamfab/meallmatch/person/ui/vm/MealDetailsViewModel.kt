@@ -33,8 +33,13 @@ class MealDetailsViewModel @Inject constructor(
             _state.update { it.copy(loading = true, error = null) }
             try {
                 val token = tokenStore.tokenFlow.first().orEmpty()
-                val meal = repo.meal(token, mealId)
-                _state.update { it.copy(loading = false, meal = meal) }
+                // Backend has no single-meal endpoint; fetch all and find by id
+                val meal = repo.meals(token).firstOrNull { it.id == mealId }
+                if (meal != null) {
+                    _state.update { it.copy(loading = false, meal = meal) }
+                } else {
+                    _state.update { it.copy(loading = false, error = "Meal not found") }
+                }
             } catch (e: Exception) {
                 _state.update { it.copy(loading = false, error = e.message ?: "Failed to load meal") }
             }

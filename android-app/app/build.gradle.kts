@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.dagger.hilt.android")
     kotlin("kapt")
 }
@@ -22,8 +23,10 @@ android {
         buildConfig = true
     }
 
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.15"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
@@ -42,6 +45,9 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.compose.material3:material3")
+
+    // Material Components
+    implementation("com.google.android.material:material:1.12.0")
 
     // Activity + Lifecycle
     implementation("androidx.activity:activity-compose:1.9.3")
