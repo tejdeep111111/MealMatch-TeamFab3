@@ -33,8 +33,10 @@ public class AuthService {
             throw new UnauthorizedException("Email already registered");
         }
 
-        String role = (request.getRole() != null && !request.getRole().isBlank())
+        String requestedRole = (request.getRole() != null && !request.getRole().isBlank())
                 ? request.getRole().toUpperCase() : "USER";
+        // Only allow USER or PROVIDER registration; prevent privilege escalation to ADMIN
+        String role = ("PROVIDER".equals(requestedRole)) ? "PROVIDER" : "USER";
 
         User user = User.builder()
                 .name(request.getName())

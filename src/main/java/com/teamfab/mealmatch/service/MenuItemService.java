@@ -55,8 +55,9 @@ public class MenuItemService {
                 .filter(item -> {
                     if (userDietaryTags == null || userDietaryTags.isBlank()) return true;
                     if (item.getDietaryTags() == null) return false;
+                    List<String> itemTags = List.of(item.getDietaryTags().split(","));
                     for (String tag : userDietaryTags.split(",")) {
-                        if (item.getDietaryTags().contains(tag.trim())) return true;
+                        if (itemTags.contains(tag.trim())) return true;
                     }
                     return false;
                 })
